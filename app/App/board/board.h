@@ -121,7 +121,7 @@ extern "C" {
 
 // LED
 #define PIN_LED1                        GET_PIN(D,4)    //呼吸灯
-#define PIN_LED2                        GET_PIN(D,5)    //通信灯
+#define PIN_LED2                        GET_PIN(D,5)    //PC通信灯
 #define PIN_LED3                        GET_PIN(D,6)    //
 #define PIN_LED4                        GET_PIN(D,7)
 

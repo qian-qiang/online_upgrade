@@ -10,9 +10,24 @@
   "name": "TINYCRYPT"
  }, 
  {
+  "path": "/packages/tools/EasyFlash", 
+  "ver": "v4.1.0", 
+  "name": "EASYFLASH"
+ }, 
+ {
+  "path": "/packages/tools/ulog_easyflash", 
+  "ver": "v0.2.0", 
+  "name": "ULOG_EASYFLASH"
+ }, 
+ {
   "path": "/packages/system/fal", 
-  "ver": "v0.5.0", 
+  "ver": "latest", 
   "name": "FAL"
+ }, 
+ {
+  "path": "/packages/system/littlefs", 
+  "ver": "v2.5.0", 
+  "name": "LITTLEFS"
  }, 
  {
   "path": "/packages/peripherals/at24cxx", 
@@ -20,13 +35,8 @@
   "name": "AT24CXX"
  }, 
  {
-  "path": "/packages/misc/fastlz", 
-  "ver": "v1.0.1", 
-  "name": "FASTLZ"
- }, 
- {
-  "path": "/packages/misc/quicklz", 
-  "ver": "v1.0.1", 
-  "name": "QUICKLZ"
+  "path": "/packages/misc/upacker", 
+  "ver": "latest", 
+  "name": "UPACKER"
  }
 ]

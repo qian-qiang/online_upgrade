@@ -20,6 +20,7 @@ extern "C"
 #define MAX_PACK_SIZE 128 //最长消息长度,最大可用14位即16384
 #define STX_L 0XFE         //数据包头
 #define STX_R 0xEF
+#define STX_F 0xFF
 
         typedef void (*PACKER_CB)(uint8_t *d, uint16_t s);
 
@@ -50,7 +51,7 @@ extern "C"
         int upacker_init(char* name, upacker_inst_t packer, PACKER_CB handle, PACKER_CB send);
         void upacker_pack(upacker_inst_t packer, uint8_t *buff, uint16_t size);
         void upacker_unpack(upacker_inst_t packer, uint8_t *buff, uint16_t size);
-        uint16_t crc_16(uint8_t *buf, uint16_t len);
+        uint8_t crc_16(uint8_t *buf, uint16_t len);
 #ifdef __cplusplus
 }
 #endif

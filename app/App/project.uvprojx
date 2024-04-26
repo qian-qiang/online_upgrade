@@ -336,9 +336,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_HAL_DRIVER, STM32F407xx, RT_USING_ARM_LIBC</Define>
+              <Define>USE_HAL_DRIVER, STM32F407xx, LFS_CONFIG=lfs_config.h, RT_USING_ARM_LIBC</Define>
               <Undefine></Undefine>
-              <IncludePath>.;rt-thread\include;applications\error;.;applications\main;.;applications\protocol;.;applications\state;.;board;board\CubeMX_Config\Inc;libraries\HAL_Drivers;libraries\HAL_Drivers\config;libraries\HAL_Drivers\drv_flash;packages\at24cxx;packages\fal-v0.5.0\inc;packages\fastlz-v1.0.1;packages\ota_downloader-v1.0.0;packages\quicklz-v1.0.1;packages\rt-spi-tools;packages\rt-spi-tools\src;packages\tinycrypt-latest\include;rt-thread\libcpu\arm\common;rt-thread\libcpu\arm\cortex-m4;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\spi;rt-thread\components\drivers\include;rt-thread\components\drivers\spi\sfud\inc;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\finsh;rt-thread\components\libc\compilers\armlibc;rt-thread\components\libc\compilers\common;rt-thread\components\utilities\ulog;rt-thread\components\utilities\ymodem;libraries\STM32F4xx_HAL\STM32F4xx_HAL_Driver\Inc;libraries\STM32F4xx_HAL\CMSIS\Device\ST\STM32F4xx\Include;libraries\STM32F4xx_HAL\CMSIS\Include</IncludePath>
+              <IncludePath>.;rt-thread\include;applications\error;.;applications\main;.;applications\protocol;.;applications\state;.;board;board\CubeMX_Config\Inc;board\ports;libraries\HAL_Drivers;libraries\HAL_Drivers\config;libraries\HAL_Drivers\drv_flash;packages\at24cxx;packages\EasyFlash-v4.1.0\inc;packages\ulog_easyflash-v0.2.0;packages\fal-latest\inc;packages\littlefs-v2.5.0;packages\ota_downloader-v1.0.0;packages\rt-spi-tools;packages\rt-spi-tools\src;packages\tinycrypt-latest\include;packages\uart_ymodem;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\spi;rt-thread\components\drivers\include;rt-thread\components\drivers\spi\sfud\inc;rt-thread\components\drivers\include;rt-thread\components\drivers\include;packages\upacker;packages\upacker\c;.;rt-thread\libcpu\arm\common;rt-thread\libcpu\arm\cortex-m4;rt-thread\components\dfs\include;rt-thread\components\dfs\filesystems\devfs;rt-thread\components\finsh;rt-thread\components\libc\compilers\armlibc;rt-thread\components\libc\compilers\common;rt-thread\components\utilities\ulog;rt-thread\components\utilities\ymodem;libraries\STM32F4xx_HAL\STM32F4xx_HAL_Driver\Inc;libraries\STM32F4xx_HAL\CMSIS\Device\ST\STM32F4xx\Include;libraries\STM32F4xx_HAL\CMSIS\Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -508,6 +508,11 @@
               <FilePath>applications\main\dac7568.c</FilePath>
             </File>
             <File>
+              <FileName>ef_fal_poart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>applications\main\ef_fal_poart.c</FilePath>
+            </File>
+            <File>
               <FileName>fal_flash_stm32f4_port.c</FileName>
               <FileType>1</FileType>
               <FilePath>applications\main\fal_flash_stm32f4_port.c</FilePath>
@@ -567,6 +572,21 @@
         <Group>
           <GroupName>protocol</GroupName>
           <Files>
+            <File>
+              <FileName>drv_uart_ymodem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>applications\protocol\drv_uart_ymodem.c</FilePath>
+            </File>
+            <File>
+              <FileName>mcu_upgrade.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>applications\protocol\mcu_upgrade.c</FilePath>
+            </File>
+            <File>
+              <FileName>receive_file.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>applications\protocol\receive_file.c</FilePath>
+            </File>
             <File>
               <FileName>serial_pc.c</FileName>
               <FileType>1</FileType>
@@ -648,6 +668,11 @@
               <FilePath>libraries\HAL_Drivers\drv_spi.c</FilePath>
             </File>
             <File>
+              <FileName>drv_qspi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>libraries\HAL_Drivers\drv_qspi.c</FilePath>
+            </File>
+            <File>
               <FileName>drv_soft_i2c.c</FileName>
               <FileType>1</FileType>
               <FilePath>libraries\HAL_Drivers\drv_soft_i2c.c</FilePath>
@@ -686,6 +711,61 @@
               <FileName>at24cxx.c</FileName>
               <FileType>1</FileType>
               <FilePath>packages\at24cxx\at24cxx.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>EasyFlash</GroupName>
+          <Files>
+            <File>
+              <FileName>easyflash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\EasyFlash-v4.1.0\src\easyflash.c</FilePath>
+            </File>
+            <File>
+              <FileName>ef_cmd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\EasyFlash-v4.1.0\src\ef_cmd.c</FilePath>
+            </File>
+            <File>
+              <FileName>ef_env.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\EasyFlash-v4.1.0\src\ef_env.c</FilePath>
+            </File>
+            <File>
+              <FileName>ef_env_legacy.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\EasyFlash-v4.1.0\src\ef_env_legacy.c</FilePath>
+            </File>
+            <File>
+              <FileName>ef_env_legacy_wl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\EasyFlash-v4.1.0\src\ef_env_legacy_wl.c</FilePath>
+            </File>
+            <File>
+              <FileName>ef_iap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\EasyFlash-v4.1.0\src\ef_iap.c</FilePath>
+            </File>
+            <File>
+              <FileName>ef_log.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\EasyFlash-v4.1.0\src\ef_log.c</FilePath>
+            </File>
+            <File>
+              <FileName>ef_utils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\EasyFlash-v4.1.0\src\ef_utils.c</FilePath>
+            </File>
+            <File>
+              <FileName>ulog_easyflash_be.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\ulog_easyflash-v0.2.0\ulog_easyflash_be.c</FilePath>
+            </File>
+            <File>
+              <FileName>ulog_easyflash_cfg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\ulog_easyflash-v0.2.0\ulog_easyflash_cfg.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -764,37 +844,52 @@
             <File>
               <FileName>fal.c</FileName>
               <FileType>1</FileType>
-              <FilePath>packages\fal-v0.5.0\src\fal.c</FilePath>
+              <FilePath>packages\fal-latest\src\fal.c</FilePath>
             </File>
             <File>
               <FileName>fal_flash.c</FileName>
               <FileType>1</FileType>
-              <FilePath>packages\fal-v0.5.0\src\fal_flash.c</FilePath>
+              <FilePath>packages\fal-latest\src\fal_flash.c</FilePath>
             </File>
             <File>
               <FileName>fal_partition.c</FileName>
               <FileType>1</FileType>
-              <FilePath>packages\fal-v0.5.0\src\fal_partition.c</FilePath>
+              <FilePath>packages\fal-latest\src\fal_partition.c</FilePath>
             </File>
             <File>
               <FileName>fal_rtt.c</FileName>
               <FileType>1</FileType>
-              <FilePath>packages\fal-v0.5.0\src\fal_rtt.c</FilePath>
+              <FilePath>packages\fal-latest\src\fal_rtt.c</FilePath>
             </File>
             <File>
               <FileName>fal_flash_sfud_port.c</FileName>
               <FileType>1</FileType>
-              <FilePath>packages\fal-v0.5.0\samples\porting\fal_flash_sfud_port.c</FilePath>
+              <FilePath>packages\fal-latest\samples\porting\fal_flash_sfud_port.c</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>fastlz</GroupName>
+          <GroupName>littlefs</GroupName>
           <Files>
             <File>
-              <FileName>fastlz.c</FileName>
+              <FileName>dfs_lfs.c</FileName>
               <FileType>1</FileType>
-              <FilePath>packages\fastlz-v1.0.1\fastlz.c</FilePath>
+              <FilePath>packages\littlefs-v2.5.0\dfs_lfs.c</FilePath>
+            </File>
+            <File>
+              <FileName>lfs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\littlefs-v2.5.0\lfs.c</FilePath>
+            </File>
+            <File>
+              <FileName>lfs_crc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\littlefs-v2.5.0\lfs_crc.c</FilePath>
+            </File>
+            <File>
+              <FileName>lfs_util.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\littlefs-v2.5.0\lfs_util.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -805,16 +900,6 @@
               <FileName>ymodem_ota.c</FileName>
               <FileType>1</FileType>
               <FilePath>packages\ota_downloader-v1.0.0\src\ymodem_ota.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>quicklz</GroupName>
-          <Files>
-            <File>
-              <FileName>quicklz.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>packages\quicklz-v1.0.1\quicklz.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -928,36 +1013,6 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>cpu</GroupName>
-          <Files>
-            <File>
-              <FileName>backtrace.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>rt-thread\libcpu\arm\common\backtrace.c</FilePath>
-            </File>
-            <File>
-              <FileName>div0.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>rt-thread\libcpu\arm\common\div0.c</FilePath>
-            </File>
-            <File>
-              <FileName>showmem.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>rt-thread\libcpu\arm\common\showmem.c</FilePath>
-            </File>
-            <File>
-              <FileName>cpuport.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>rt-thread\libcpu\arm\cortex-m4\cpuport.c</FilePath>
-            </File>
-            <File>
-              <FileName>context_rvds.S</FileName>
-              <FileType>2</FileType>
-              <FilePath>rt-thread\libcpu\arm\cortex-m4\context_rvds.S</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
           <GroupName>DeviceDrivers</GroupName>
           <GroupOption>
             <CommonProperty>
@@ -1030,6 +1085,11 @@
           </GroupOption>
           <Files>
             <File>
+              <FileName>uart_ymodem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\uart_ymodem\uart_ymodem.c</FilePath>
+            </File>
+            <File>
               <FileName>can.c</FileName>
               <FileType>1</FileType>
               <FilePath>rt-thread\components\drivers\can\can.c</FilePath>
@@ -1060,6 +1120,11 @@
               <FilePath>rt-thread\components\drivers\misc\adc.c</FilePath>
             </File>
             <File>
+              <FileName>mtd_nor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\drivers\mtd\mtd_nor.c</FilePath>
+            </File>
+            <File>
               <FileName>rtc.c</FileName>
               <FileType>1</FileType>
               <FilePath>rt-thread\components\drivers\rtc\rtc.c</FilePath>
@@ -1078,6 +1143,11 @@
               <FileName>spi_dev.c</FileName>
               <FileType>1</FileType>
               <FilePath>rt-thread\components\drivers\spi\spi_dev.c</FilePath>
+            </File>
+            <File>
+              <FileName>qspi_core.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\drivers\spi\qspi_core.c</FilePath>
             </File>
             <File>
               <FileName>spi_flash_sfud.c</FileName>
@@ -1137,6 +1207,86 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>upacker</GroupName>
+          <Files>
+            <File>
+              <FileName>upacker.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>packages\upacker\c\upacker.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>cpu</GroupName>
+          <Files>
+            <File>
+              <FileName>backtrace.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\libcpu\arm\common\backtrace.c</FilePath>
+            </File>
+            <File>
+              <FileName>div0.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\libcpu\arm\common\div0.c</FilePath>
+            </File>
+            <File>
+              <FileName>showmem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\libcpu\arm\common\showmem.c</FilePath>
+            </File>
+            <File>
+              <FileName>cpuport.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\libcpu\arm\cortex-m4\cpuport.c</FilePath>
+            </File>
+            <File>
+              <FileName>context_rvds.S</FileName>
+              <FileType>2</FileType>
+              <FilePath>rt-thread\libcpu\arm\cortex-m4\context_rvds.S</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Filesystem</GroupName>
+          <Files>
+            <File>
+              <FileName>dfs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\dfs\src\dfs.c</FilePath>
+            </File>
+            <File>
+              <FileName>dfs_file.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\dfs\src\dfs_file.c</FilePath>
+            </File>
+            <File>
+              <FileName>dfs_fs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\dfs\src\dfs_fs.c</FilePath>
+            </File>
+            <File>
+              <FileName>dfs_posix.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\dfs\src\dfs_posix.c</FilePath>
+            </File>
+            <File>
+              <FileName>poll.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\dfs\src\poll.c</FilePath>
+            </File>
+            <File>
+              <FileName>select.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\dfs\src\select.c</FilePath>
+            </File>
+            <File>
+              <FileName>devfs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\dfs\filesystems\devfs\devfs.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>finsh</GroupName>
           <Files>
             <File>
@@ -1154,6 +1304,11 @@
               <FileType>1</FileType>
               <FilePath>rt-thread\components\finsh\msh.c</FilePath>
             </File>
+            <File>
+              <FileName>msh_file.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\finsh\msh_file.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1168,6 +1323,11 @@
               <FileName>mem_std.c</FileName>
               <FileType>1</FileType>
               <FilePath>rt-thread\components\libc\compilers\armlibc\mem_std.c</FilePath>
+            </File>
+            <File>
+              <FileName>stdio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\libc\compilers\armlibc\stdio.c</FilePath>
             </File>
             <File>
               <FileName>stubs.c</FileName>
@@ -1198,6 +1358,11 @@
               <FileName>ymodem.c</FileName>
               <FileType>1</FileType>
               <FilePath>rt-thread\components\utilities\ymodem\ymodem.c</FilePath>
+            </File>
+            <File>
+              <FileName>ry_sy.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>rt-thread\components\utilities\ymodem\ry_sy.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1343,6 +1508,11 @@
               <FileName>stm32f4xx_hal_wwdg.c</FileName>
               <FileType>1</FileType>
               <FilePath>libraries\STM32F4xx_HAL\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_wwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_nor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>libraries\STM32F4xx_HAL\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_nor.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_hal_flash.c</FileName>

@@ -439,16 +439,16 @@ static rt_err_t _rym_do_fin(struct rym_ctx *ctx)
     ctx->stage = RYM_STAGE_FINISHING;
     /* we already got one EOT in the caller. invoke the callback if there is
      * one. */
-    if (ctx->on_end)
-        ctx->on_end(ctx, ctx->buf + 3, 128);
+//    if (ctx->on_end)
+//        ctx->on_end(ctx, ctx->buf + 3, 128);
 
-    _rym_putchar(ctx, RYM_CODE_NAK);
-    code = _rym_read_code(ctx, RYM_WAIT_PKG_TICK);
-    if (code != RYM_CODE_EOT)
-        return -RYM_ERR_CODE;
+//    _rym_putchar(ctx, RYM_CODE_NAK);
+//    code = _rym_read_code(ctx, RYM_WAIT_PKG_TICK);
+//    if (code != RYM_CODE_EOT)
+//        return -RYM_ERR_CODE;
 
     _rym_putchar(ctx, RYM_CODE_ACK);
-    _rym_putchar(ctx, RYM_CODE_C);
+//    _rym_putchar(ctx, RYM_CODE_C);
 
     code = _rym_read_code(ctx, RYM_WAIT_PKG_TICK);
     if (code == RYM_CODE_SOH)

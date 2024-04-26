@@ -17,6 +17,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include "easyflash.h"
 #include "error.h"
 #include "at24c08.h"
 #include "no_bug.h"
@@ -27,12 +28,13 @@
 #include "funtimer.h"
 #include "fan.h"
 #include "fal.h"
+#include <dfs_fs.h>
 
 #define HEART_LED    PIN_LED1
 
 const char product_tab[32]    = {"main_board"};          	        /**<  产品名称   */
 const char project_tab[32]    = {"main_board_app"};                         /**<  工程名称   */
-char versions_tab[16]   = {"1.0.240429"};                                   /**<  版本信息   */
+char versions_tab[16]   = {"1.0.240425"};                                   /**<  版本信息   */
 const char hard_board_tab[16] = {"1.0.0"};                                  /**<  硬件信息   */
 const char username_tab[16]   = {"qianqiang"};                              /**<  作者信息   */
 
@@ -79,6 +81,39 @@ static void get_version()
     }
 }
 
+#define FS_PARTITION_NAME              "filesystem"
+void mount_littlefs (void)
+{
+    struct rt_device *mtd_dev = RT_NULL;
+    mtd_dev = fal_mtd_nor_device_create(FS_PARTITION_NAME);
+    
+    if (!mtd_dev)
+    {
+        LOG_E("Can't create a mtd device on '%s' partition.", FS_PARTITION_NAME);
+    }
+    else
+    {
+        /* 挂载 littlefs */
+        if (dfs_mount(FS_PARTITION_NAME, "/", "lfs", 0, 0) == 0)
+        {
+            LOG_I("Filesystem initialized!");
+        }
+        else
+        {
+            /* 格式化文件系统 */
+            dfs_mkfs("lfs", FS_PARTITION_NAME);
+            /* 挂载 littlefs */
+            if (dfs_mount("filesystem", "/", "lfs", 0, 0) == 0)
+            {
+                LOG_I("Filesystem initialized!");
+            }
+            else
+            {
+                LOG_E("Failed to initialize filesystem!");
+            }
+        }
+    }
+}
 
 void board_init(void)
 {
@@ -87,7 +122,7 @@ void board_init(void)
     AT24CXX_Init();
     cd74xx_adc_init();
     fpga_spi2_init();
-    Fan_Init();
+    easyflash_init();
 }
 
 void thread_init(void)
@@ -116,6 +151,7 @@ void thread_init(void)
     thread_pump_init();
     task_init();
     cd74_thread_init();
+    mount_littlefs();
 }
 
 int main(void)

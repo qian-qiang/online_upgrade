@@ -149,7 +149,7 @@ static enum rym_code _rym_send_end(
     return RYM_CODE_SOH;
 }
 
-static rt_err_t rym_download_file(rt_device_t idev)
+rt_err_t rym_download_file(rt_device_t idev)
 {
     rt_err_t res;
     struct custom_ctx *ctx = rt_calloc(1, sizeof(*ctx));

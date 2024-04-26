@@ -18,7 +18,6 @@
 #endif
 
 static struct ulog_backend console;
-static struct ulog_backend console_log;
 
 void ulog_console_backend_output(struct ulog_backend *backend, rt_uint32_t level, const char *tag, rt_bool_t is_raw,
         const char *log, size_t len)
@@ -44,38 +43,12 @@ void ulog_console_backend_output(struct ulog_backend *backend, rt_uint32_t level
 
 }
 
-void ulog_pc_backend_output(struct ulog_backend *backend, rt_uint32_t level, const char *tag, rt_bool_t is_raw,
-        const char *log, size_t len)
-{
-#ifdef RT_USING_DEVICE
-    rt_device_t dev = rt_device_find("uart1");
-
-    if (dev == RT_NULL)
-    {
-        rt_hw_console_output(log);
-    }
-    else
-    {
-        rt_uint16_t old_flag = dev->open_flag;
-
-        dev->open_flag |= RT_DEVICE_FLAG_STREAM;
-        rt_device_write(dev, 0, log, len);
-        dev->open_flag = old_flag;
-    }
-#else
-    rt_hw_console_output(log);
-#endif
-
-}
-
 int ulog_console_backend_init(void)
 {
     ulog_init();
     console.output = ulog_console_backend_output;
-    console_log.output = ulog_pc_backend_output;
     
     ulog_backend_register(&console, "console", RT_TRUE);
-    ulog_backend_register(&console_log, "pc_log", RT_TRUE);
     
     return 0;
 }

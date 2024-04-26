@@ -161,7 +161,7 @@ static void error_display_process(void)
     uart_cmd_send.cmd = ERR; 
     uart_cmd_send.size = 4;
     rt_memcpy(&uart_cmd_send.data[0], &id_send, sizeof(id_send));
-    uart_pc_protocol_send(&uart_cmd_send);
+    //uart_pc_protocol_send(&uart_cmd_send);
     
 }
 

@@ -73,6 +73,12 @@
 
 /* Device virtual file system */
 
+#define RT_USING_DFS
+#define DFS_USING_WORKDIR
+#define DFS_FILESYSTEMS_MAX 2
+#define DFS_FILESYSTEM_TYPES_MAX 2
+#define DFS_FD_MAX 16
+#define RT_USING_DFS_DEVFS
 
 /* Device Drivers */
 
@@ -86,11 +92,14 @@
 #define RT_USING_I2C_BITOPS
 #define RT_USING_PIN
 #define RT_USING_ADC
+#define RT_USING_MTD_NOR
 #define RT_USING_RTC
 #define RT_USING_SPI
+#define RT_USING_QSPI
 #define RT_USING_SFUD
 #define RT_SFUD_USING_SFDP
 #define RT_SFUD_USING_FLASH_INFO_TABLE
+#define RT_SFUD_USING_QSPI
 #define RT_SFUD_SPI_MAX_HZ 50000000
 #define RT_USING_WDT
 
@@ -100,6 +109,7 @@
 /* POSIX layer and C standard library */
 
 #define RT_USING_LIBC
+#define RT_USING_POSIX
 
 /* Network */
 
@@ -121,6 +131,7 @@
 /* Utilities */
 
 #define RT_USING_RYM
+#define YMODEM_USING_FILE_TRANSFER
 #define RT_USING_ULOG
 #define ULOG_OUTPUT_LVL_D
 #define ULOG_OUTPUT_LVL 7
@@ -201,6 +212,23 @@
 
 /* tools packages */
 
+#define PKG_USING_EASYFLASH
+#define PKG_EASYFLASH_ENV
+#define PKG_EASYFLASH_ENV_AUTO_UPDATE
+#define PKG_EASYFLASH_ENV_VER_NUM 1
+#define PKG_EASYFLASH_LOG
+#define PKG_EASYFLASH_LOG_AREA_SIZE 4177920
+#define PKG_EASYFLASH_ERASE_GRAN 4096
+#define PKG_EASYFLASH_WRITE_GRAN_1BIT
+#define PKG_EASYFLASH_WRITE_GRAN 1
+#define PKG_EASYFLASH_START_ADDR 0
+#define PKG_EASYFLASH_DEBUG
+#define PKG_USING_EASYFLASH_V410
+#define PKG_EASYFLASH_VER_NUM 0x40100
+#define PKG_USING_ULOG_EASYFLASH
+#define ULOG_EASYFLASH_BACKEND_ENABLE
+#define ULOG_EASYFLASH_CFG_SAVE_ENABLE
+#define PKG_USING_ULOG_EASYFLASH_V00200
 
 /* system packages */
 
@@ -221,8 +249,17 @@
 #define FAL_PART_HAS_TABLE_CFG
 #define FAL_USING_SFUD_PORT
 #define FAL_USING_NOR_FLASH_DEV_NAME "norflash0"
-#define PKG_USING_FAL_V00500
-#define PKG_FAL_VER_NUM 0x00500
+#define PKG_USING_FAL_LATEST_VERSION
+#define PKG_FAL_VER_NUM 0x99999
+#define PKG_USING_LITTLEFS
+#define PKG_USING_LITTLEFS_V250
+#define LFS_READ_SIZE 256
+#define LFS_PROG_SIZE 256
+#define LFS_BLOCK_SIZE 4096
+#define LFS_CACHE_SIZE 256
+#define LFS_BLOCK_CYCLES -1
+#define LFS_THREADSAFE
+#define LFS_LOOKAHEAD_MAX 128
 
 /* peripheral libraries and drivers */
 
@@ -257,11 +294,8 @@
 
 /* entertainment: terminal games and other interesting software packages */
 
-#define PKG_USING_FASTLZ
-#define PKG_USING_FASTLZ_V101
-#define PKG_USING_QUICKLZ
-#define QLZ_COMPRESSION_LEVEL 3
-#define PKG_USING_QUICKLZ_V101
+#define PKG_USING_UPACKER
+#define PKG_USING_UPACKER_LATEST_VERSION
 
 /* Arduino libraries */
 

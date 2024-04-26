@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "uart_ymodem.h": "c",
+        "drv_uart_ymodem.h": "c",
+        "drv_uart_ymodem_chs": "c"
+    }
+}

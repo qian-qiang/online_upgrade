@@ -19,6 +19,7 @@
 #include "stdbool.h"
 #include "task.h"
 #include "seed.h"
+#include "upacker.h"
 #include "aom.h"
 #include "at24c08.h"
 #include "fpga.h"
@@ -26,9 +27,27 @@
 #include "fan.h"
 #include <stdlib.h>
 #include <sys/time.h>
+#include "recver_file.h"
+#include "drv_uart_ymodem.h"
 
 static void uart_protocol_unpack(uart_cmd_t *pack, uint8_t* data, uint16_t size);
 static void pc_handle_cb(uint8_t *d, uint16_t size);
+
+upacker_inst pc_uart_packer;
+
+static uint8_t cmd_crc(uart_cmd_t *buf)
+{
+		uint8_t tmp=0xff;
+		tmp=tmp^buf->send_buf[2];
+		tmp=tmp^buf->send_buf[3];
+		tmp=tmp^buf->send_buf[4];
+		tmp=tmp^buf->send_buf[5];
+		tmp=tmp^buf->send_buf[6];
+		tmp=tmp^buf->send_buf[7];
+		tmp=tmp^buf->send_buf[8];
+		tmp=tmp^0xa2;
+		return tmp;
+}
 
 static uint8_t bcd2dec(uint8_t bcd)
 {
@@ -42,7 +61,7 @@ static void uart_pc_process_send(uint8_t *d, uint16_t size)
 
 int serial_pc_msg_unpack(uint8_t *buf, uint32_t length)
 {
-    pc_handle_cb(buf, length);
+    upacker_unpack(&pc_uart_packer, buf, length);
     return RT_EOK;
 }
 
@@ -1378,6 +1397,17 @@ static void pc_handle_cb(uint8_t *d, uint16_t size)
             rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[IR_HM_T], sizeof(GD_BUF[IR_HM_T])); 
             uart_pc_protocol_send(&uart_cmd_send); 
 			break;	
+         
+         case MCU_UPGRADE:
+            log_d("pc send mcu upgrade cmd");	
+            uint32_t crc32_value = 0;
+            rt_memcpy(&crc32_value, &cmd_unpack.data[0], 4);
+            mcu_bin_file_rec(crc32_value);
+			break;	
+         
+         case MCU_YMODEM:
+            drv_uart_ymodem_pc_to_mcu(&cmd_unpack, size);   //注意这里获取到的是真实的ymodem数据  
+            break;
 		default:    
             break;            				
 	}
@@ -1385,21 +1415,29 @@ static void pc_handle_cb(uint8_t *d, uint16_t size)
 
 static void uart_protocol_unpack(uart_cmd_t *pack, uint8_t* data, uint16_t size)
 {
-	pack->wr = data[1];
-	pack->cmd = data[2];
-	
-	rt_memcpy(pack->data, &data[3], (size - 3));
+	pack->wr = data[0];
+	pack->cmd = data[1];
+	pack->size = size;
+	rt_memcpy(pack->data, &data[2], 4);
 }
 
 void uart_pc_protocol_send(uart_cmd_t *pack)
 {
-    pack->send_buf[0] = 0xff;
-	pack->send_buf[1] = pack->wr;
-    pack->send_buf[2] = pack->cmd;
+    pack->send_buf[0] = 0xfe;
+    pack->send_buf[1] = 0xef;
+    pack->send_buf[2] = 0xff;
+	pack->send_buf[3] = pack->wr;
+    pack->send_buf[4] = pack->cmd;
 
-	rt_memcpy(&(pack->send_buf[3]), pack->data, pack->size);
+	rt_memcpy(&(pack->send_buf[5]), pack->data, pack->size);
 	
-	//upacker_pack(&msg_screen_packer, pack->send_buf, pack->size + 2);
+	upacker_pack(&pc_uart_packer, pack->send_buf, pack->size + 5);
+}
+
+void uart_process_init(void)
+{
+	//init packer
+    upacker_init("pc_upacker", &pc_uart_packer, pc_handle_cb, uart_pc_process_send);
 }
 
 

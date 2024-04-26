@@ -16,9 +16,13 @@
 #include "rtdbg.h"
 #include "serial_pc.h"
 #include "serial_unpack.h"
+#include "drv_uart_ymodem.h"
 
 #define UART_NAME_SCREEN        "uart1"      /* 串口设备名称 */
+#define PIN_UART_LED            PIN_LED2   
+
 uint32_t GD_BUF[GD_LEN]={0};
+uint16_t uart_mode;
 
 struct rx_msg
 {
@@ -28,7 +32,7 @@ struct rx_msg
 
 #define PC_SERIAL_CONFIG_DEFAULT           \
 {                                          \
-    BAUD_RATE_19200, /* 115200 bits/s */  \
+    BAUD_RATE_19200, /* 19200 bits/s */  \
     DATA_BITS_8,      /* 8 databits */     \
     STOP_BITS_1,      /* 1 stopbit */      \
     PARITY_NONE,      /* No parity  */     \
@@ -65,6 +69,7 @@ static void serial_thread_entry(void *parameter)
     rt_uint32_t rx_length;
     static uint8_t rx_buffer[512];
     uint16_t cmd;
+    uart_mode = UART_CMD_MODE;
     
     while (1)
     {
@@ -74,16 +79,24 @@ static void serial_thread_entry(void *parameter)
         if (result == RT_EOK)
         {
             rx_length = rt_device_read(msg.dev, 0, rx_buffer, msg.size);
-            rx_buffer[rx_length] = '\0';
+            rt_pin_write(PIN_UART_LED,!rt_pin_read(PIN_UART_LED));
+            rt_kprintf("pc send: ");
+            for(uint16_t i = 0; i < rx_length; i++)
+            {
+                rt_kprintf("%x ",rx_buffer[i]);
+            }
+            rt_kprintf("\r\n");
+            //这里设计两个模式：1：控制数据模式  2：ymodem数据模式
+            if(uart_mode == UART_CMD_MODE)
+            {
+                rx_buffer[rx_length] = '\0';
+                serial_pc_msg_unpack(rx_buffer, rx_length);
+            }
+            else
+            {
+                drv_uart_ymodem_pc_to_mcu(rx_buffer, rx_length);
+            }
             
-//            rt_kprintf("pc send: ");
-//            for(uint16_t i = 0; i < rx_length; i++)
-//            {
-//                rt_kprintf("%x ",rx_buffer[i]);
-//            }
-//            //rt_kprintf("------cmd is %s",enum_type_to_string(cmd));
-//            rt_kprintf("\r\n");
-            serial_pc_msg_unpack(rx_buffer, rx_length);
         }
     }
 }
@@ -111,6 +124,8 @@ int serial_pc_init(void)
     rt_pin_mode(UART1_EN, PIN_MODE_OUTPUT);
     rt_pin_write(UART1_EN, PIN_HIGH);
     
+    rt_pin_mode(PIN_UART_LED, PIN_MODE_OUTPUT);
+    
     serial_screen = rt_device_find(UART_NAME_SCREEN);
     if (!serial_screen)
     {
@@ -123,6 +138,8 @@ int serial_pc_init(void)
     /* 设置接收回调函数 */
     rt_device_set_rx_indicate(serial_screen, uart_get_from_pc);
                
+    uart_process_init();
+    
     ret = rt_mq_init(&rx_mq_screen, "rx_mq_screen",
                        msg_pool_screen,                 /* 存放消息的缓冲区 */
                        sizeof(struct rx_msg),           /* 一条消息的最大长度 */
@@ -152,3 +169,12 @@ int serial_pc_init(void)
     
     return ret;
 }
+
+#if defined(RT_USING_FINSH) && defined(FINSH_USING_MSH)
+#include <finsh.h>
+static void uart_mode_read(uint8_t argc, char **argv)
+{
+    rt_kprintf("uart_mode   		= %s      \n", uart_mode?"UART_YMODEM_MODE":"UART_CMD_MODE");
+}
+MSH_CMD_EXPORT(uart_mode_read, uart_mode read);
+#endif /* defined(RT_USING_FINSH) && defined(FINSH_USING_MSH) */

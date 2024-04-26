@@ -64,23 +64,34 @@ const uint8_t auch_crc_lo[] =
 0x40  
 };  
 
-uint16_t crc_16(uint8_t *buf, uint16_t len)
+uint8_t crc_16(uint8_t *buf, uint16_t len)
 {
-	uint8_t crc_hi=0xff;  
-	uint8_t crc_lo=0xff;  
-	uint16_t index;  
-	uint16_t value;
-	while(len--)  
-	{  
-		index = crc_hi ^* buf++;  
-		crc_hi = crc_lo ^ auch_crc_hi[index];  
-		crc_lo = auch_crc_lo[index];  
-	}  
-	value = crc_hi;
-	value <<= 8;
-	value |= crc_lo;
-	
-    return value; 
+//	uint8_t crc_hi=0xff;  
+//	uint8_t crc_lo=0xff;  
+//	uint16_t index;  
+//	uint16_t value;
+//	while(len--)  
+//	{  
+//		index = crc_hi ^* buf++;  
+//		crc_hi = crc_lo ^ auch_crc_hi[index];  
+//		crc_lo = auch_crc_lo[index];  
+//	}  
+//	value = crc_hi;
+//	value <<= 8;
+//	value |= crc_lo;
+//	
+//    return value; 
+    
+    	uint8_t tmp=0xff;
+		tmp=tmp^buf[0];
+		tmp=tmp^buf[1];
+		tmp=tmp^buf[2];
+		tmp=tmp^buf[3];
+		tmp=tmp^buf[4];
+		tmp=tmp^buf[5];
+		tmp=tmp^buf[6];
+		tmp=tmp^0xa2;
+		return tmp;
 }
 
 /**
@@ -158,10 +169,15 @@ static uint8_t frame_decode(upacker_inst_t packer, uint8_t d)
 	}
 	else if(packer->head_flag && (d == STX_R))
 	{
+		packer->head_flag = 2;
+		return 0;
+        
+	}else if((packer->head_flag ==2) && (d == STX_F))
+	{
 		packer->head_flag = 0;
 		packer->state = 1;
 		packer->cnt = 0;
-        packer->flen = 9;
+        packer->flen = 8;
 		return 0;
 	}
 	else
@@ -177,9 +193,7 @@ static uint8_t frame_decode(upacker_inst_t packer, uint8_t d)
         {
 			packer->flen -= 2;
 		
-			packer->check = packer->data[packer->flen];
-			packer->check <<= 8;
-			packer->check |= packer->data[packer->flen + 1];
+			packer->check = packer->data[packer->flen + 1];
 
 			//校验
 			packer->calc = crc_16(packer->data, packer->flen);
@@ -208,29 +222,22 @@ static uint8_t frame_encode(upacker_inst_t packer, uint8_t *data, uint16_t size)
 {
 	uint8_t len = 0;
     uint8_t tmp[MAX_PACK_SIZE] = {0};
-    uint16_t crc = 0;
+    uint8_t crc = 0;
 
     if (size > 16384)
     {
         return 0;
     }
 
-    tmp[0] = STX_L;
-	tmp[1] = STX_R;
-	
-    tmp[2] = data[0];
-
-	len = 3;
-	
     for (int i = 0; i < size; i++)
     {
-        tmp[3+i] = data[i+1];
+        tmp[i] = data[i];
     }
     
     len += size;
-	crc = crc_16(data, ++size);
+	crc = crc_16(&tmp[3], ++size);
 
-	tmp[len] = (crc >> 8) & 0xff; 
+	tmp[len] = 0; 
     tmp[len + 1] = crc & 0xff;  
 	
 	len += 2;
