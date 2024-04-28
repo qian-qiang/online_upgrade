@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include "easyflash.h"
 #include "error.h"
+#include "param.h"
 #include "at24c08.h"
 #include "no_bug.h"
 #include "serial_pc.h"
@@ -29,6 +30,8 @@
 #include "fan.h"
 #include "fal.h"
 #include <dfs_fs.h>
+#include <ulog_file.h>
+#include <dfs_posix.h> 
 
 #define HEART_LED    PIN_LED1
 
@@ -146,12 +149,14 @@ void thread_init(void)
     {
         log_e("thread can init failed");   
     } 
+    param_init();
     thread_seed_init();
     thread_aom_init();
     thread_pump_init();
     task_init();
     cd74_thread_init();
     mount_littlefs();
+    ulog_file_backend_init();
 }
 
 int main(void)
