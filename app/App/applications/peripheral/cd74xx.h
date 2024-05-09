@@ -10,8 +10,8 @@
 #include "seed.h"
 
 #define ADCA_DEV_CHANNEL_10    10           /* ADC 通道 */
-#define ADCB_DEV_CHANNEL_12    12           /* ADC 通道 */
-#define ADCC_DEV_CHANNEL_13    13           /* ADC 通道 */
+#define ADCB_DEV_CHANNEL_11    11           /* ADC 通道 */
+#define ADCC_DEV_CHANNEL_12    12           /* ADC 通道 */
 
 #define CD74_NUM               3            /*CD74个数*/
 #define CD74_USE_CHANNEL       8            /*每个CD74通道*/

@@ -83,13 +83,13 @@ uint8_t crc_16(uint8_t *buf, uint16_t len)
 //    return value; 
     
     	uint8_t tmp=0xff;
+        tmp=tmp^0xff;
 		tmp=tmp^buf[0];
 		tmp=tmp^buf[1];
 		tmp=tmp^buf[2];
 		tmp=tmp^buf[3];
 		tmp=tmp^buf[4];
 		tmp=tmp^buf[5];
-		tmp=tmp^buf[6];
 		tmp=tmp^0xa2;
 		return tmp;
 }

@@ -24,7 +24,6 @@
 #include "at24c08.h"
 #include "fpga.h"
 #include "ShgThg.h"
-#include "fan.h"
 #include <stdlib.h>
 #include <sys/time.h>
 #include "recver_file.h"
@@ -117,7 +116,23 @@ void run_cmd_set(rt_uint8_t cmd, uart_cmd_t *pack)
                 AT24CXX_Read(AddPump2Ena, (uint8_t *)&GD_BUF[PUMP2_ENA], 1);
                 log_i("GD_BUF[PUMP2_ENA] set %s", GD_BUF[PUMP2_ENA]?"on":"off");   
             }
-            break; 		
+            break; 	
+        case PUMP3_ENA: 
+            if((keyState == 0) && (GD_BUF[ERR] == none) && (GD_BUF[STARTING]) )
+            {
+                AT24CXX_Write(AddPump3Ena, &pack->data[0], 1);
+                AT24CXX_Read(AddPump3Ena, (uint8_t *)&GD_BUF[PUMP3_ENA], 1);
+                log_i("GD_BUF[PUMP3_ENA] set %s", GD_BUF[PUMP3_ENA]?"on":"off");   
+            }
+            break; 	
+        case PUMP4_ENA: 
+            if((keyState == 0) && (GD_BUF[ERR] == none) && (GD_BUF[STARTING]) )
+            {
+                AT24CXX_Write(AddPump4Ena, &pack->data[0], 1);
+                AT24CXX_Read(AddPump4Ena, (uint8_t *)&GD_BUF[PUMP4_ENA], 1);
+                log_i("GD_BUF[PUMP4_ENA] set %s", GD_BUF[PUMP4_ENA]?"on":"off");   
+            }
+            break; 	            
 		case PUMP1_I_SET:
             rt_memcpy(&GD_BUF[PUMP1_I_SET], &pack->data[0], sizeof(GD_BUF[PUMP1_I_SET]));	     
             if(GD_BUF[PUMP1_I_SET] > GD_BUF[PUMP1_I_MAX])
@@ -146,6 +161,34 @@ void run_cmd_set(rt_uint8_t cmd, uart_cmd_t *pack)
             AT24CXX_Read(AddPump2ISetByte1, (uint8_t *)&GD_BUF[PUMP2_I_SET], 2);
             log_i("GD_BUF[PUMP2_I_SET] set %d.%d A", GD_BUF[PUMP2_I_SET]/10,GD_BUF[PUMP2_I_SET]%10);
             break;
+        case PUMP3_I_SET:
+            rt_memcpy(&GD_BUF[PUMP3_I_SET], &pack->data[0], sizeof(GD_BUF[PUMP3_I_SET]));	 
+            if(GD_BUF[PUMP3_I_SET] > GD_BUF[PUMP3_I_MAX])
+            {
+                GD_BUF[PUMP3_I_SET] = GD_BUF[PUMP3_I_MAX];
+            }
+            if(GD_BUF[PUMP3_I_SET] < 1)
+            {
+                GD_BUF[PUMP3_I_SET] = 0;
+            } 
+            AT24CXX_Write(AddPump3ISetByte1, &pack->data[0], 2);
+            AT24CXX_Read(AddPump3ISetByte1, (uint8_t *)&GD_BUF[PUMP3_I_SET], 2);
+            log_i("GD_BUF[PUMP3_I_SET] set %d.%d A", GD_BUF[PUMP3_I_SET]/10,GD_BUF[PUMP3_I_SET]%10);
+            break;
+        case PUMP4_I_SET:
+            rt_memcpy(&GD_BUF[PUMP4_I_SET], &pack->data[0], sizeof(GD_BUF[PUMP4_I_SET]));	 
+            if(GD_BUF[PUMP4_I_SET] > GD_BUF[PUMP2_I_MAX])
+            {
+                GD_BUF[PUMP4_I_SET] = GD_BUF[PUMP2_I_MAX];
+            }
+            if(GD_BUF[PUMP4_I_SET] < 1)
+            {
+                GD_BUF[PUMP4_I_SET] = 0;
+            } 
+            AT24CXX_Write(AddPump4ISetByte1, &pack->data[0], 2);
+            AT24CXX_Read(AddPump4ISetByte1, (uint8_t *)&GD_BUF[PUMP4_I_SET], 2);
+            log_i("GD_BUF[PUMP4_I_SET] set %d.%d A", GD_BUF[PUMP4_I_SET]/10,GD_BUF[PUMP4_I_SET]%10);
+            break;
 		case PUMP1_I_MAX:
             AT24CXX_Write(AddPump1IMaxByte1, &pack->data[0], 2);
             AT24CXX_Read(AddPump1IMaxByte1, (uint8_t *)&GD_BUF[PUMP1_I_MAX], 2);
@@ -155,6 +198,16 @@ void run_cmd_set(rt_uint8_t cmd, uart_cmd_t *pack)
             AT24CXX_Write(AddPump2IMaxByte1, &pack->data[0], 2);
             AT24CXX_Read(AddPump2IMaxByte1, (uint8_t *)&GD_BUF[PUMP2_I_MAX], 2);
             log_i("GD_BUF[PUMP2_I_MAX] set %d.%d A", GD_BUF[PUMP2_I_MAX]/10,GD_BUF[PUMP2_I_MAX]%10);
+            break;
+        case PUMP3_I_MAX:
+            AT24CXX_Write(AddPump3IMaxByte1, &pack->data[0], 2);
+            AT24CXX_Read(AddPump3IMaxByte1, (uint8_t *)&GD_BUF[PUMP3_I_MAX], 2);
+            log_i("GD_BUF[PUMP3_I_MAX] set %d.%d A", GD_BUF[PUMP3_I_MAX]/10,GD_BUF[PUMP3_I_MAX]%10);
+            break;
+       case PUMP4_I_MAX:
+            AT24CXX_Write(AddPump4IMaxByte1, &pack->data[0], 2);
+            AT24CXX_Read(AddPump4IMaxByte1, (uint8_t *)&GD_BUF[PUMP4_I_MAX], 2);
+            log_i("GD_BUF[PUMP4_I_MAX] set %d.%d A", GD_BUF[PUMP4_I_MAX]/10,GD_BUF[PUMP4_I_MAX]%10);
             break;
 		case PUMP_TEMP_H_ALARM:
             AT24CXX_Write(AddPumpTempHAlarmB1, &pack->data[0], 2);
@@ -551,20 +604,7 @@ void run_cmd_set(rt_uint8_t cmd, uart_cmd_t *pack)
                 log_i("GD_BUF[SWITCH] set %s",GD_BUF[SWITCH]?"on":"off");      
                 laserSwitchFlag	= true;											
             }
-            break;	
-		case AIRPUMP_EN:
-            AT24CXX_Write(AddAirPumpEna, &pack->data[0], 1);
-            AT24CXX_Read(AddAirPumpEna, (uint8_t *)&GD_BUF[AIRPUMP_EN], 1);
-            log_i("GD_BUF[AIRPUMP_EN] set %s",GD_BUF[AIRPUMP_EN]?"on":"off");  
-            if(GD_BUF[AIRPUMP_EN] == 1)
-            {
-                FAN_EN_ON();
-            }
-            else  
-            {
-                FAN_EN_OFF(); 
-            }
-            break;										
+            break;							
 		//没有使用	
 		case AIRPUMP_FREQ: 
             rt_memcpy(&GD_BUF[AIRPUMP_FREQ], &pack->data[0], sizeof(GD_BUF[AIRPUMP_FREQ]));
@@ -787,7 +827,23 @@ static void pc_handle_cb(uint8_t *d, uint16_t size)
             }
             rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP2_ENA], sizeof(GD_BUF[PUMP2_ENA]));
             uart_pc_protocol_send(&uart_cmd_send);
-            break;									
+            break;		
+		case PUMP3_ENA: 
+            if(cmd_unpack.wr == CMD_WRITE)
+            {
+                run_cmd_set(PUMP3_ENA, &cmd_unpack);
+            }
+            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP3_ENA], sizeof(GD_BUF[PUMP3_ENA]));
+            uart_pc_protocol_send(&uart_cmd_send);
+            break;	
+		case PUMP4_ENA: 
+            if(cmd_unpack.wr == CMD_WRITE)
+            {
+                run_cmd_set(PUMP4_ENA, &cmd_unpack);
+            }
+            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP4_ENA], sizeof(GD_BUF[PUMP4_ENA]));
+            uart_pc_protocol_send(&uart_cmd_send);
+            break;	            
 		case PUMP1_I_SET:     
             if(cmd_unpack.wr == CMD_WRITE)
             {
@@ -801,7 +857,23 @@ static void pc_handle_cb(uint8_t *d, uint16_t size)
             {
                 run_cmd_set(PUMP2_I_SET, &cmd_unpack);
             }
-            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP2_I_SET], sizeof(GD_BUF[PUMP1_I_SET]));
+            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP2_I_SET], sizeof(GD_BUF[PUMP2_I_SET]));
+            uart_pc_protocol_send(&uart_cmd_send);
+            break;
+        case PUMP3_I_SET:     
+            if(cmd_unpack.wr == CMD_WRITE)
+            {
+                run_cmd_set(PUMP3_I_SET, &cmd_unpack);
+            }
+            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP3_I_SET], sizeof(GD_BUF[PUMP3_I_SET]));
+            uart_pc_protocol_send(&uart_cmd_send);
+            break;
+        case PUMP4_I_SET:     
+            if(cmd_unpack.wr == CMD_WRITE)
+            {
+                run_cmd_set(PUMP4_I_SET, &cmd_unpack);
+            }
+            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP4_I_SET], sizeof(GD_BUF[PUMP4_I_SET]));
             uart_pc_protocol_send(&uart_cmd_send);
             break;
 	    case PUMP1_I_MAX: 
@@ -819,7 +891,23 @@ static void pc_handle_cb(uint8_t *d, uint16_t size)
             }
             rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP2_I_MAX], sizeof(GD_BUF[PUMP2_I_MAX]));
             uart_pc_protocol_send(&uart_cmd_send);
-            break;			
+            break;	
+		case PUMP3_I_MAX: 
+            if(cmd_unpack.wr == CMD_WRITE)
+            {
+                run_cmd_set(PUMP3_I_MAX, &cmd_unpack);
+            }
+            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP3_I_MAX], sizeof(GD_BUF[PUMP3_I_MAX]));
+            uart_pc_protocol_send(&uart_cmd_send);
+            break;		
+		case PUMP4_I_MAX: 
+            if(cmd_unpack.wr == CMD_WRITE)
+            {
+                run_cmd_set(PUMP4_I_MAX, &cmd_unpack);
+            }
+            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP4_I_MAX], sizeof(GD_BUF[PUMP4_I_MAX]));
+            uart_pc_protocol_send(&uart_cmd_send);
+            break;		          
 		case PUMP1_I_READ: 
             rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP1_I_READ], sizeof(GD_BUF[PUMP1_I_READ]));
             uart_pc_protocol_send(&uart_cmd_send);
@@ -828,12 +916,28 @@ static void pc_handle_cb(uint8_t *d, uint16_t size)
             rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP2_I_READ], sizeof(GD_BUF[PUMP2_I_READ]));
             uart_pc_protocol_send(&uart_cmd_send);
 		    break;	
+        case PUMP3_I_READ: 
+            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP3_I_READ], sizeof(GD_BUF[PUMP3_I_READ]));
+            uart_pc_protocol_send(&uart_cmd_send);
+		    break;	
+        case PUMP4_I_READ: 
+            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP4_I_READ], sizeof(GD_BUF[PUMP4_I_READ]));
+            uart_pc_protocol_send(&uart_cmd_send);
+		    break;	
 		case PUMP1_TEMP_READ: 
             rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP1_TEMP_READ], sizeof(GD_BUF[PUMP1_TEMP_READ]));
             uart_pc_protocol_send(&uart_cmd_send);
             break;	
 		case PUMP2_TEMP_READ: 
             rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP2_TEMP_READ], sizeof(GD_BUF[PUMP2_TEMP_READ]));
+            uart_pc_protocol_send(&uart_cmd_send);
+            break;	
+        case PUMP3_TEMP_READ: 
+            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP3_TEMP_READ], sizeof(GD_BUF[PUMP3_TEMP_READ]));
+            uart_pc_protocol_send(&uart_cmd_send);
+            break;	
+        case PUMP4_TEMP_READ: 
+            rt_memcpy(&uart_cmd_send.data[0], &GD_BUF[PUMP4_TEMP_READ], sizeof(GD_BUF[PUMP4_TEMP_READ]));
             uart_pc_protocol_send(&uart_cmd_send);
             break;	
 		case PUMP_TEMP_H_ALARM:

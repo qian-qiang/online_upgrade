@@ -5,7 +5,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2018-11-06     qq           first version
+ * 2024-5-07      qq           first version
  */
 #define LOG_TAG      "task"
 #define LOG_LVL      LOG_LVL_DBG
@@ -29,27 +29,23 @@
 #include "cd74xx.h"
 #include "pd.h"
 #include "funtimer.h"
-#include "fan.h"
+#include "temp_humi.h"
 
 #define THREAD_STACK_SIZE   1024
 #define THREAD_PRIORITY     20
 #define THREAD_TIMESLICE    10
+#define SCANNUM                                                 20                 //检测告警位扫描次数
+#define CLK_FS                                                  200000000          //FPGA 基频时钟200MHz
 
 static rt_thread_t tid_init_task = RT_NULL;
 static rt_thread_t uart_process_task = RT_NULL;
 static rt_thread_t other_task = RT_NULL;
 static rt_thread_t laser_task = RT_NULL;
 
-#define scanNum                                                 20                 //检测告警位扫描次数
-#define CLK_FS                                                  200000000          //FPGA 基频时钟200MHz
-                                                     
-rt_uint8_t rtcFlag[2] = {0,0};                                                     //保存RTC日期和时间更新标志
 rt_uint8_t keyState = 1;                                                           //保存按钮状态  
-
 rt_bool_t UserSetValueChaFlag[4] = {false,false,false,false};                      //UI某值修改标志位分别是FreCha\BurstCha\aom1delayCha\aom2delayCha
 rt_bool_t laserSwitchFlag = true;                                                  //SWITCH动作标志位
 
-//保存泵的开关状/态
 typedef struct
 { 
 	rt_uint8_t pump1State;					 										//泵1开关标志位,1-ON,0-OFF
@@ -58,8 +54,7 @@ typedef struct
 	rt_uint8_t pump4State;					 										//泵4开关标志位,1-ON,0-OFF
 }laserPartEnaStruct;
 
-laserPartEnaStruct laserPart={0,0,0,0};  
-
+laserPartEnaStruct laserPart={0,0,0,0};                                           //保存泵的开关状/态  
 
 /********************************************************************************
 *函数名: get_eeprom_data
@@ -116,18 +111,7 @@ void get_eeprom_data(void)
         GD_BUF[SWITCH] = off;
 		AT24CXX_WriteOneByte(AddSwitch, GD_BUF[SWITCH]);
 		laserSwitchFlag	= true;	
-        
-//        AT24CXX_WriteOneByte(AddPump1Ena, GD_BUF[PUMP1_ENA]);
-//        AT24CXX_WriteOneByte(AddPump2Ena, GD_BUF[PUMP2_ENA]);
-//        AT24CXX_WriteOneByte(AddPump3Ena, GD_BUF[PUMP3_ENA]);
-//        AT24CXX_WriteOneByte(AddPump4Ena, GD_BUF[PUMP4_ENA]);
-//        AT24CXX_WriteOneByte(AddSqStandby, GD_BUF[SQ_STANDBY_ENA]);
-
-//        AT24CXX_WriteOneByte(AddSeedPower, GD_BUF[SEED_POWER_ENA]);
-//        AT24CXX_WriteOneByte(AddSeedLaser, GD_BUF[SEED_LASER_ENA]);
-//        AT24CXX_WriteOneByte(AddFqPower, GD_BUF[FQ_POWER_ENA]);
-//        AT24CXX_WriteOneByte(AddSqPower, GD_BUF[SQ_POWER_ENA]);
-        
+  
         /*qq record*/
         GD_BUF[LASER_TYPE]             = AT24CXX_ReadOneByte(AddLaserType);
         GD_BUF[LASER_POWSEL]           = AT24CXX_ReadOneByte(AddPowerSel);
@@ -192,14 +176,6 @@ void get_eeprom_data(void)
         GD_BUF[ELECTRIC_PD_TRI_CNT]    = AT24CXX_ReadOneByte(AddElectricPdTriCnt);
         GD_BUF[LASER_OUT_PD_TRI_CNT]   = AT24CXX_ReadOneByte(AddLaserPdPdTriCnt);
         GD_BUF[SECLASER_OUT_PD_TRI_CNT]= AT24CXX_ReadOneByte(AddSecLaserPdTriCnt);
-        
-//		GD_BUF[SerialNumA1]            = AT24CXX_ReadOneByte(73)|(AT24CXX_ReadOneByte(74)<<8)|(AT24CXX_ReadOneByte(75)<<16);	
-//		GD_BUF[SerialNumB1]            = AT24CXX_ReadOneByte(76)|(AT24CXX_ReadOneByte(77)<<8)|(AT24CXX_ReadOneByte(78)<<16);
-//#if		USER_LOCK
-//		GD_BUF[RTC_DATE_SET]           = AT24CXX_ReadOneByte(79)|(AT24CXX_ReadOneByte(80)<<8)|(AT24CXX_ReadOneByte(81)<<16);	
-//		GD_BUF[RTC_TIME_SET]           = AT24CXX_ReadOneByte(82)|(AT24CXX_ReadOneByte(83)<<8)|(AT24CXX_ReadOneByte(84)<<16);
-//		GD_BUF[USER_LIMITDAY]          = AT24CXX_ReadOneByte(85);
-//#endif
 	}
 	else   //进行初始数据更新
 	{	
@@ -214,10 +190,10 @@ void get_eeprom_data(void)
 		GD_BUF[PUMP2_I_SET]            = 0;
 		GD_BUF[PUMP3_I_SET]            = 0;
 		GD_BUF[PUMP4_I_SET]            = 0;
-		GD_BUF[PUMP1_I_MAX]            = 160;
-		GD_BUF[PUMP2_I_MAX]            = 160;
-		GD_BUF[PUMP3_I_MAX]            = 160;
-		GD_BUF[PUMP4_I_MAX]            = 160;
+		GD_BUF[PUMP1_I_MAX]            = 110;
+		GD_BUF[PUMP2_I_MAX]            = 110;
+		GD_BUF[PUMP3_I_MAX]            = 110;
+		GD_BUF[PUMP4_I_MAX]            = 110;
 		GD_BUF[PUMP_TEMP_H_ALARM]      = 350;
 		GD_BUF[PUMP_TEMP_L_ALARM]      = 150;
 		GD_BUF[CAVITY_TEMP_H_ALARM]    = 350;
@@ -296,8 +272,6 @@ void get_eeprom_data(void)
 		GD_BUF[ELECTRIC_PD_TRI_CNT]    = 0;
         GD_BUF[LASER_OUT_PD_TRI_CNT]   = 0;
         GD_BUF[SECLASER_OUT_PD_TRI_CNT]= 0;
-//		GD_BUF[SerialNumA1]            = Product_Password();                 //生成锁机密码
-//		GD_BUF[SerialNumB1]            = GD_BUF[SerialNumA1];                //解锁密码		
 
 		AT24CXX_WriteOneByte(AddEepromCheck,(EEPROMPASS));                     //EEPROM读写标志
 
@@ -315,11 +289,6 @@ void get_eeprom_data(void)
 	    AT24CXX_WriteOneByte(AddSn3Byte2, (GD_BUF[SN3] >> 8) & 0xff);
 	    AT24CXX_WriteOneByte(AddSn3Byte3,(GD_BUF[SN3] >> 16) & 0xff);
 	    AT24CXX_WriteOneByte(AddSn3Byte4,(GD_BUF[SN3] >> 24) & 0xff);
-		
-//		AT24CXX_WriteOneByte(AddPump1Ena, GD_BUF[PUMP1_ENA]);
-//		AT24CXX_WriteOneByte(AddPump2Ena, GD_BUF[PUMP2_ENA]);
-//		AT24CXX_WriteOneByte(AddPump3Ena, GD_BUF[PUMP3_ENA]);
-//		AT24CXX_WriteOneByte(AddPump4Ena, GD_BUF[PUMP4_ENA]);
 		
 		AT24CXX_WriteOneByte(AddPump1ISetByte1, GD_BUF[PUMP1_I_SET] & 0xff);
 		AT24CXX_WriteOneByte(AddPump1ISetByte2, (GD_BUF[PUMP1_I_SET] >> 8) & 0xff);
@@ -349,23 +318,18 @@ void get_eeprom_data(void)
 		AT24CXX_WriteOneByte(AddCavityTempLAlarmB1, GD_BUF[CAVITY_TEMP_L_ALARM] & 0xff);
 		AT24CXX_WriteOneByte(AddCavityTempLAlarmB2, (GD_BUF[CAVITY_TEMP_L_ALARM] >> 8) & 0xff);
 		
-//		AT24CXX_WriteOneByte(AddSeedPower, GD_BUF[SEED_POWER_ENA]);
-//		AT24CXX_WriteOneByte(AddSeedLaser, GD_BUF[SEED_LASER_ENA]);
 		AT24CXX_WriteOneByte(AddSeedEnergy, GD_BUF[SEED_LASER_ENERGY_CTRL]);
 		AT24CXX_WriteOneByte(AddSeedLaserTimeB1, GD_BUF[SEED_TIME] & 0xff);
 	    AT24CXX_WriteOneByte(AddSeedLaserTimeB2, (GD_BUF[SEED_TIME] >> 8) & 0xff);
 		AT24CXX_WriteOneByte(AddSeedLaserTimeB3, (GD_BUF[SEED_TIME] >> 16) & 0xff);
 		AT24CXX_WriteOneByte(AddSeedType, GD_BUF[SEED_TYPE]);
 		
-//	    AT24CXX_WriteOneByte(AddFqPower, GD_BUF[FQ_POWER_ENA]); 
 		AT24CXX_WriteOneByte(AddFqBurst, GD_BUF[BURST_NUM]);
 		AT24CXX_WriteOneByte(AddFqRf, GD_BUF[FQ_RF_SCALE]);
 		AT24CXX_WriteOneByte(AddFqFreB1, GD_BUF[FQ_FRE] & 0xff);
 		AT24CXX_WriteOneByte(AddFqFreB2, (GD_BUF[FQ_FRE] >> 8) & 0xff);
 		AT24CXX_WriteOneByte(AddFqDelay, GD_BUF[FQ_DELAY]);
 		
-//		AT24CXX_WriteOneByte(AddSqPower, GD_BUF[SQ_POWER_ENA]);
-//		AT24CXX_WriteOneByte(AddSqStandby, GD_BUF[SQ_STANDBY_ENA]);
 		AT24CXX_WriteOneByte(AddSqRfB1, GD_BUF[SQ_RF_SCALE] & 0xff);
 		AT24CXX_WriteOneByte(AddSqRfB2, (GD_BUF[SQ_RF_SCALE] >> 8) & 0xff);
 		AT24CXX_WriteOneByte(AddSqAttenSel, GD_BUF[SQ_ATTEN_SEL]);
@@ -402,14 +366,6 @@ void get_eeprom_data(void)
 		AT24CXX_WriteOneByte(AddUvLaserTimeB1, GD_BUF[UV_TIME] & 0xff);
 		AT24CXX_WriteOneByte(AddUvLaserTimeB2,(GD_BUF[UV_TIME] >> 8) & 0xff);
 	    AT24CXX_WriteOneByte(AddUvLaserTimeB3,(GD_BUF[UV_TIME] >> 16) & 0xff);
-		
-		
-//		AT24CXX_WriteOneByte(73, GD_BUF[SerialNumA1] & 0xff);
-//		AT24CXX_WriteOneByte(74,(GD_BUF[SerialNumA1] >> 8) & 0xff);
-//		AT24CXX_WriteOneByte(75,(GD_BUF[SerialNumA1] >> 16) & 0xff);
-//	    AT24CXX_WriteOneByte(76, GD_BUF[SerialNumB1] & 0xff);
-//		AT24CXX_WriteOneByte(77,(GD_BUF[SerialNumB1] >> 8) & 0xff);
-//		AT24CXX_WriteOneByte(78,(GD_BUF[SerialNumB1] >> 16) & 0xff);
 			
 		AT24CXX_WriteOneByte(AddIrPdFactor, GD_BUF[IR_PD_FACTOR]);
 		AT24CXX_WriteOneByte(AddUvPdFactor, GD_BUF[UV_PD_FACTOR]);
@@ -458,243 +414,8 @@ void get_eeprom_data(void)
         AT24CXX_WriteOneByte(AddElectricPdTriCnt, GD_BUF[ELECTRIC_PD_TRI_CNT]);
         AT24CXX_WriteOneByte(AddLaserPdPdTriCnt, GD_BUF[LASER_OUT_PD_TRI_CNT]);
         AT24CXX_WriteOneByte(AddSecLaserPdTriCnt, GD_BUF[SECLASER_OUT_PD_TRI_CNT]);
-        
-#if		USER_LOCK		
-		GD_BUF[RTC_DATE_SET]           = 200701;                             //YYMMDD
-		GD_BUF[RTC_TIME_SET]           = 131415;                             //HHMMSS
-		GD_BUF[USER_LIMITDAY]          = 255;                                //试用天数	
-//		AT24CXX_WriteOneByte(79,GD_BUF[RTC_DATE_SET] & 0xff);                    
-//		AT24CXX_WriteOneByte(80,(GD_BUF[RTC_DATE_SET] >> 8) & 0xff);
-//		AT24CXX_WriteOneByte(81,(GD_BUF[RTC_DATE_SET] >> 16) & 0xff);
-//		AT24CXX_WriteOneByte(82,GD_BUF[RTC_TIME_SET] & 0xff);		
-//		AT24CXX_WriteOneByte(83,(GD_BUF[RTC_TIME_SET] >> 8) & 0xff);	
-//		AT24CXX_WriteOneByte(84,(GD_BUF[RTC_TIME_SET]  >> 16) & 0xff);	
-//		AT24CXX_WriteOneByte(85,GD_BUF[USER_LIMITDAY]);	
-#endif		
 	}
-    if(GD_BUF[AIRPUMP_EN] == 1)
-    {
-        FAN_EN_ON();
-    }
-    else  
-    {
-        FAN_EN_OFF(); 
-    }
 } 
-
-void All_Init(void)
-{     
-    get_eeprom_data();              //获取EEPROM存储数据 
-    rt_thread_mdelay(1000);                 
-    Seed_Init();                    //种子源初始化
-    Aom_Init();                     //AOM初始化
-    PUMP_Init();                    //泵浦初始化
-//    HM_Init();                      //AHT20温湿度计初始化
-    STHG_Init();                    //二/三倍频初始化     
-    DAC_CBM128S085_Init();
-    
-    ACTIVE_SEED_ENERGY_CTRL(GD_BUF[SEED_LASER_ENERGY_CTRL],Channel_E);  //设置种子源功率
-    Aom1RfSet(GD_BUF[FQ_RF_SCALE],Channel_F);                           //设置Fiber Q射频功率 
-    STHG_TEMP_SET(GD_BUF[SHG_SET],Channel_G);                           //设置二倍频温度
-    STHG_TEMP_SET(GD_BUF[THG_SET],Channel_H);                           //设置三倍频温度
-    SHG_ENA_ON();                 									    //使能二倍频
-    THG_ENA_ON(); 		         									    //使能三倍频
-    
-    ACTIVE_WR_FPGA();           									    //向FPGA写入数据
-    
-    GD_BUF[USER_STATE]        = 0; 
-    GD_BUF[ERR]               = 0;
-    GD_BUF[PUMP1_TEMP_READ]   = 250;
-    GD_BUF[PUMP2_TEMP_READ]   = 250;
-    GD_BUF[PUMP3_TEMP_READ]   = 250; 
-    GD_BUF[PUMP4_TEMP_READ]   = 250;
-    GD_BUF[CAVITY_TEMP_READ]  = 250;
-    GD_BUF[CAVITY2_TEMP_READ] = 250;      
-}
-
-static void Initail_Check_Task(void* parameter)
-{
- 	 rt_err_t err;
-
-	static rt_uint32_t init_cnt = 0;  //初始化过程计时
-    static rt_uint8_t checkItemCnt[8]={0,0,0,0,0,0,0,0}; //记录每项的检查次数
-    bool checkItemResult[8]={false,false,false,false,false,false,false,false}; //保存初始化时检查项的结果
-	
-	//上电初始化检查项
-	typedef enum
-    {
-		seedItem       = 0,
-		sqItem         = 1,
-		pump1Item      = 2,
-		pump2Item      = 3,
-		pump3Item      = 4,
-		pump4Item      = 5,
-		cavityItem     = 6,
-		cavity2Item    = 7
-	}checkItem;
-
-
-    while(1)
-    {
-        rt_thread_mdelay(100);                                          //延时100ms
-		//可硬件屏蔽初始化检查
-        if(!ALARM_EN)                                                   
-        {
-            if( GD_BUF[ERR] == none)                                     //无告警
-            {
-				if(GD_BUF[SEED_TYPE] == TOPTICA)
-				{
-					//种子源检查
-					if( SEED_ALARM != 0)      
-					{
-						checkItemCnt[seedItem]++;
-						if(checkItemCnt[seedItem] > scanNum)                 //检查scanNum遍无异常
-						{
-							checkItemResult[seedItem] = true;
-						}
-					}
-					else
-					{
-						checkItemResult[seedItem] = false;
-						checkItemCnt[seedItem] = 0;
-					}
-				}
-				else if(GD_BUF[SEED_TYPE] == NPI)
-				{
-					checkItemResult[seedItem] = true;
-				} 
-
-				//空间Q检查
-				if(SQ_SWR_ALARM != 0)       
-				{
-					checkItemCnt[sqItem]++;
-					if(checkItemCnt[sqItem] > scanNum)
-					{
-						checkItemResult[sqItem] = true;
-					}
-				}
-				else
-				{
-					checkItemResult[sqItem] = false;
-					checkItemCnt[sqItem] = 0;
-				}
-				
-                //泵1温度检查
-                if(IsInSide(GD_BUF[PUMP1_TEMP_READ], GD_BUF[PUMP_TEMP_L_ALARM]+10, GD_BUF[PUMP_TEMP_H_ALARM]-10))//比设定的上下限报警范围小1℃
-                {
-                   	checkItemCnt[pump1Item]++;
-					if(checkItemCnt[pump1Item] > scanNum)
-					{
-						checkItemResult[pump1Item] = true;
-					}
-                }
-                else
-                {
-                   	checkItemResult[pump1Item] = false;
-					checkItemCnt[pump1Item] = 0;
-                }
-				
-				//泵2温度检查
-                if(IsInSide(GD_BUF[PUMP2_TEMP_READ], GD_BUF[PUMP_TEMP_L_ALARM]+10, GD_BUF[PUMP_TEMP_H_ALARM]-10))
-                {
-                   	checkItemCnt[pump2Item]++;
-					if(checkItemCnt[pump2Item] > scanNum)
-					{
-						checkItemResult[pump2Item] = true;
-					}
-                }
-                else
-                {
-                   	checkItemResult[pump2Item] = false;
-					checkItemCnt[pump2Item] = 0;
-                }
-				
-//				//泵3温度检查
-//                if(IsInSide(GD_BUF[PUMP3_TEMP_READ], GD_BUF[PUMP_TEMP_L_ALARM]+10, GD_BUF[PUMP_TEMP_H_ALARM]-10))
-//                {
-//                   	checkItemCnt[pump3Item]++;
-//					if(checkItemCnt[pump3Item] > scanNum)
-//					{
-//						checkItemResult[pump3Item] = true;
-//					}
-//                }
-//                else
-//                {
-//                   	checkItemResult[pump3Item] = false;
-//					checkItemCnt[pump3Item] = 0;
-//                }
-				
-				//腔体1处温度检查
-                if(IsInSide(GD_BUF[CAVITY_TEMP_READ], GD_BUF[CAVITY_TEMP_L_ALARM]+10, GD_BUF[CAVITY_TEMP_H_ALARM]-10))
-                {
-                   	checkItemCnt[cavityItem]++;
-					if(checkItemCnt[cavityItem] > scanNum)
-					{
-						checkItemResult[cavityItem] = true;
-					}
-                }
-                else
-                {
-                   	checkItemResult[cavityItem] = false;
-					checkItemCnt[cavityItem] = 0;
-                }	
-				
-				//腔体2处温度检查
-                if(IsInSide(GD_BUF[CAVITY2_TEMP_READ], GD_BUF[CAVITY_TEMP_L_ALARM]+10, GD_BUF[CAVITY_TEMP_H_ALARM]-10))
-                {
-                   	checkItemCnt[cavity2Item]++;
-						if(checkItemCnt[cavity2Item] > scanNum)
-						{
-							checkItemResult[cavity2Item] = true;
-						}
-                }
-                else
-                {
-                   	checkItemResult[cavity2Item] = false;
-						checkItemCnt[cavity2Item] = 0;
-                }	
-				
-                //需要初始化检测
-                if(GD_BUF[INIT_TIME] != 0) 
-                {
-                    if(init_cnt++ > GD_BUF[INIT_TIME] * 300) //超过最大初始化时间，报警,以半分钟为步进
-                    {
-                        GD_BUF[ERR_DETAIL] = initailBit;   
-						
-                        GD_BUF[ERR] = initialWarning ;
-						
-                        if(GD_BUF[INIT_ALARM_CNT] < 255) 
-                        { 
-                            GD_BUF[INIT_ALARM_CNT]++;
-                            AT24CXX_WriteOneByte(AddInitAlarmCnt, GD_BUF[INIT_ALARM_CNT]); //记录报警次数
-                        }
-                       return;	         //删除start_task任务自身
-                    }
-                    GD_BUF[INIT_TIME_CNT] = init_cnt / 10;   //1S累加1次
-                }
-                //无需初始化检测等待，直接进入主函数
-                else
-                {
-                    rt_thread_mdelay(2000);             //延时2s
-
-                    GD_BUF[STARTING] = true;
-
-                    return;	//删除start_task任务自身
-                }
-            }
-        }
-        //检查初始化情况，可屏蔽
-//		if( ( (checkItemResult[seedItem] && checkItemResult[sqItem] && checkItemResult[pump1Item] && checkItemResult[pump2Item] && checkItemResult[pump3Item]\
-//			&& checkItemResult[cavityItem] && checkItemResult[cavity2Item] ) && (GD_BUF[ERR] == none) ) || ALARM_EN )
-		if( ( (checkItemResult[seedItem] && checkItemResult[sqItem] && checkItemResult[pump1Item] && checkItemResult[pump2Item]\
-			&& checkItemResult[cavityItem] ) && (GD_BUF[ERR] == none) ) || ALARM_EN )
-        {
-            GD_BUF[STARTING] = true;
-			
-            return;	//删除start_task任务自身
-        }
-    }
-}
 
 /********************************************************************************
 *函数名: Monitor
@@ -713,7 +434,7 @@ void Monitor(void)
 		if( (SEED_ALARM == 0) && (GD_BUF[ERR]== none) )  //低电平持续时间> 400ms 有效
 		{	
 			cnt[0]++;
-			if(cnt[0] > scanNum)  //20*100ms=2s
+			if(cnt[0] > SCANNUM)  //20*100ms=2s
 			{
 				cnt[0] = 0;
 				GD_BUF[ERR] = seedWarning;
@@ -737,7 +458,7 @@ void Monitor(void)
 			if( (SEED_ALARM == 0) && (GD_BUF[ERR]== none) )  //低电平持续时间> 17s 有效
 			{	
 				cnt[0]++;
-				if(cnt[0] > scanNum+150)  //170*100ms=17s
+				if(cnt[0] > SCANNUM+150)  //170*100ms=17s
 				{
 					cnt[0] = 0;
 					GD_BUF[ERR] = seedWarning;
@@ -760,7 +481,7 @@ void Monitor(void)
 	if( (SQ_SWR_ALARM == 0) && (GD_BUF[ERR] == none) )  //只进入1次告警程序
 	{	
 		cnt[1]++;
-		if(cnt[1] > scanNum)  //20*100ms=2s
+		if(cnt[1] > SCANNUM)  //20*100ms=2s
 		{
 			cnt[1] = 0;
 			GD_BUF[ERR] = sqWarning;
@@ -780,7 +501,7 @@ void Monitor(void)
 	if( IsOutSide( GD_BUF[PUMP1_TEMP_READ], GD_BUF[PUMP_TEMP_L_ALARM], GD_BUF[PUMP_TEMP_H_ALARM] ) && (GD_BUF[ERR] == none) )  //只进入1次告警程序
 	{	
 		cnt[2]++;
-		if(cnt[2] > scanNum)   //20*100ms=2s
+		if(cnt[2] > SCANNUM)   //20*100ms=2s
 		{
 			cnt[2] = 0;
 			GD_BUF[ERR] = pump1Warning;	                                 //PUMP1温度报警
@@ -813,7 +534,7 @@ void Monitor(void)
 	if( IsOutSide( GD_BUF[PUMP2_TEMP_READ], GD_BUF[PUMP_TEMP_L_ALARM], GD_BUF[PUMP_TEMP_H_ALARM] ) && (GD_BUF[ERR] == none) )   //只进入1次告警程序
 	{	
 		cnt[3]++;
-		if(cnt[3] > scanNum)   //20*100ms=2s
+		if(cnt[3] > SCANNUM)   //20*100ms=2s
 		{
 			cnt[3] = 0;
 			GD_BUF[ERR] = pump2Warning;	                                 //PUMP2温度报警
@@ -846,7 +567,7 @@ void Monitor(void)
 	if( IsOutSide( GD_BUF[CAVITY_TEMP_READ], GD_BUF[CAVITY_TEMP_L_ALARM], GD_BUF[CAVITY_TEMP_H_ALARM] ) && (GD_BUF[ERR] == none)  )  //只进入1次告警程序	
 	{	
 		cnt[6]++;
-		if(cnt[6] > scanNum)  //20*100ms=2s
+		if(cnt[6] > SCANNUM)  //20*100ms=2s
 		{
 			cnt[6] = 0; 											
 			GD_BUF[ERR] = cavityWarning;	                                 //CAVITY温度报警,关闭激光
@@ -879,7 +600,7 @@ void Monitor(void)
 //	if( IsOutSide( GD_BUF[CAVITY2_TEMP_READ], GD_BUF[CAVITY_TEMP_L_ALARM], GD_BUF[CAVITY_TEMP_H_ALARM] ) && (GD_BUF[ERR] == none)  )  //只进入1次告警程序	
 //	{	
 //		cnt[7]++;
-//		if(cnt[7] > scanNum)  //20*100ms=2s
+//		if(cnt[7] > SCANNUM)  //20*100ms=2s
 //		{
 //			cnt[7] = 0; 											
 //			GD_BUF[ERR] = cavity2Warning;	                                 //CAVITY2处温度报警,关闭激光
@@ -909,34 +630,6 @@ void Monitor(void)
 //		cnt[7] = 0;
 //	}
 }
-
-/********************************************************************************
-*函数名: AlarmSet
-*参数  : 无
-*功能  : 执行告警动作
-*返回值: 无
-*********************************************************************************/
-void AlarmSet(void)
-{
-	if((GD_BUF[ERR]&0xff) != none)
-	{			
-		GD_BUF[SEED_POWER_ENA] = off;
-		GD_BUF[SEED_LASER_ENA] = off;
-		GD_BUF[FQ_POWER_ENA]   = off;
-		if(GD_BUF[PUMP1_I_READ] < 10)                            //泵关闭再关SQ
-		{
-			GD_BUF[SQ_POWER_ENA]   = off;
-		}
-		GD_BUF[SQ_STANDBY_ENA] = on; //待机	
-		GD_BUF[PUMP1_ENA]      = off;
-		GD_BUF[PUMP2_ENA]      = off;
-		GD_BUF[PUMP3_ENA]      = off;
-		
-		ERR_LED_ON();		                                     //ERR灯亮
-		rt_timer_start(timer_beep); 	                         //使能蜂鸣器控制定时器  			
-	}	
-}
-
 
 /********************************************************************************
 *函数名: Update_LaserTime_CNT
@@ -998,9 +691,8 @@ void Fpga_Data_Calcultate(void)
 			FPGA_Write(FQ_FRE_W, GD_BUF[FQ_FRE]); 
 			GD_BUF[FQ_FRE] = FPGA_Read(FQ_FRE_R);		
             log_i("GD_BUF[FQ_FRE] fpga back %d ", GD_BUF[FQ_FRE]);   
-            AT24CXX_Write(AddFqFreB1, (uint8_t *)&GD_BUF[FQ_FRE], 1);
-            AT24CXX_Read(AddFqFreB1, (uint8_t *)&GD_BUF[FQ_FRE], 1);
-            log_i("GD_BUF[FQ_FRE] in flash is %d ", GD_BUF[FQ_FRE]); 
+            AT24CXX_Write(AddFqFreB1, (uint8_t *)&GD_BUF[FQ_FRE], 2);
+            //log_i("GD_BUF[FQ_FRE] in flash is %d ", GD_BUF[FQ_FRE]); 
 			UserSetValueChaFlag[aom1FreChaFlag] = false;
 		}
 				
@@ -1041,8 +733,6 @@ void Fpga_Data_Calcultate(void)
 		}
 }
 
-
-
 /********************************************************************************
 *函数名: KeyScan
 *参数  : 无
@@ -1076,7 +766,6 @@ rt_uint8_t KeyScan(void)
 	}
 	return keyFlag;
 }
-
 
 /********************************************************************************
 *函数名: Key_Action
@@ -1121,86 +810,6 @@ void Key_Action(rt_uint8_t Value)
 	}			
 }
 
-static void other_entry(void* parameter)
-{
-	bool keyInitAct = true;
-	
-	while(1)
-	{	
-		//HmRead(&GD_BUF[HM_RH], &GD_BUF[HM_T]);                               //读取紫外腔温湿度值
-		
-		//Hm2Read(&GD_BUF[IR_HM_RH], &GD_BUF[IR_HM_T]);                        //读取红外腔温湿度值
-		
-		AlarmSet();                                                          //执行告警动作
-		
-		if(GD_BUF[STARTING])                                                 //初始化完成
-		{
-			Update_LaserTime_CNT();                                          //更新种子源，红外，紫外激光计时
-		
-			if(!ALARM_EN)                                                    //可硬件屏蔽报警
-			{
-				Monitor();                                                   //监测告警量
-			}
-		
-			if( GD_BUF[ERR] == none)                                         //无告警
-			{
-				//fpga除法运算相关
-				Fpga_Data_Calcultate();
-				
-				if( (keyState != KeyScan()) || (keyInitAct) )
-				{
-					keyState = KeyScan();                                        //按钮检测
-					Key_Action(keyState);                                        //按钮功能
-					keyInitAct = false;
-				}
-				
-				if(!keyState)
-				{
-					if(laserSwitchFlag) 
-					{
-						if(GD_BUF[SWITCH])
-						{
-							GD_BUF[SEED_POWER_ENA] = on;
-							GD_BUF[SEED_LASER_ENA] = on;
-							GD_BUF[FQ_POWER_ENA] = on;
-							GD_BUF[SQ_POWER_ENA] = on;
-							GD_BUF[SQ_STANDBY_ENA] = on;
-							GD_BUF[PUMP1_ENA] = on;
-							GD_BUF[PUMP2_ENA] = on;
-							GD_BUF[PUMP3_ENA] = on;
-						}
-						else
-						{			
-							GD_BUF[SEED_POWER_ENA] = off;
-							GD_BUF[SEED_LASER_ENA] = off;
-							GD_BUF[FQ_POWER_ENA] = off;
-							GD_BUF[SQ_POWER_ENA] = off;
-							GD_BUF[SQ_STANDBY_ENA] = on;
-							GD_BUF[PUMP1_ENA] = off;
-							GD_BUF[PUMP2_ENA] = off;
-							GD_BUF[PUMP3_ENA] = off;
-						}
-						AT24CXX_WriteOneByte(AddSeedPower, GD_BUF[SEED_POWER_ENA]);
-						AT24CXX_WriteOneByte(AddSeedLaser, GD_BUF[SEED_LASER_ENA]);
-						AT24CXX_WriteOneByte(AddFqPower, GD_BUF[FQ_POWER_ENA]);
-						AT24CXX_WriteOneByte(AddSqPower, GD_BUF[SQ_POWER_ENA]);
-//						AT24CXX_WriteOneByte(AddSqStandby, GD_BUF[SQ_STANDBY_ENA]); 			
-						AT24CXX_WriteOneByte(AddPump1Ena, GD_BUF[PUMP1_ENA]);
-						AT24CXX_WriteOneByte(AddPump2Ena, GD_BUF[PUMP2_ENA]);
-						AT24CXX_WriteOneByte(AddPump3Ena, GD_BUF[PUMP3_ENA]);
-						
-						laserSwitchFlag = false;		    
-					}
-				}
-			}
-		    //aom2操作
-			Aom2CtrlAct(GD_BUF[SQ_POWER_ENA], GD_BUF[SQ_STANDBY_ENA], GD_BUF[SQ_ATTEN_SEL], GD_BUF[SQ_TYPE]);  //放在此处是让Aom2的控制不受泵开/关限制
-		}
-		rt_thread_mdelay(500);
-	}
-}
-
-
 /********************************************************************************************
 函数名：PumpSwJudge
 功能  ：泵浦开/关条件判断
@@ -1211,7 +820,7 @@ void PumpSwJudge(void)
 {
 	if(!ALARM_EN) //整机运行
 	{
-//		if( (GD_BUF[SEED_LASER_ENERGY_MON] >= 90 ) && (ReadFQPowerPinState) )    //种子源稳定出光 Fiber Q打开
+//		if((GD_BUF[SEED_LASER_ENERGY_MON] >= 90 ) && (ReadFQPowerPinState) )    //种子源稳定出光 Fiber Q打开
 		
 		if((ReadFQPowerPinState) )	 //种子源稳定出光 Fiber Q打开
 //		if( (ReadSeedLaserPinState) && (ReadFQPowerPinState) )
@@ -1304,7 +913,7 @@ void PumpSwAct(void)
 	//关泵顺序3-2-1
    	//ACTIVE_PUMP_I_SET(laserPart.pump4State, GD_BUF[PUMP4_I_SET], 3);
 	
-	//ACTIVE_PUMP_I_SET(laserPart.pump3State, GD_BUF[PUMP3_I_SET], 2);   
+	ACTIVE_PUMP_I_SET(laserPart.pump3State, GD_BUF[PUMP3_I_SET], 2);   
 	
 	ACTIVE_PUMP_I_SET(laserPart.pump2State, GD_BUF[PUMP2_I_SET], 1);
 	
@@ -1319,8 +928,348 @@ void PumpSwAct(void)
 *********************************************************************************/
 void PumpCtrl(void)
 {
-	PumpSwJudge();
-	PumpSwAct();
+	PumpSwJudge();     //泵浦开/关条件判断
+	PumpSwAct();       //执行泵浦开/关
+}
+
+/********************************************************************************
+*函数名: AlarmSet
+*参数  : 无
+*功能  : 执行告警动作
+*返回值: 无
+*********************************************************************************/
+void AlarmSet(void)
+{
+	if((GD_BUF[ERR]&0xff) != none)
+	{			
+		GD_BUF[SEED_POWER_ENA] = off;
+		GD_BUF[SEED_LASER_ENA] = off;
+		GD_BUF[FQ_POWER_ENA]   = off;
+		if(GD_BUF[PUMP1_I_READ] < 10)                            //泵关闭再关SQ
+		{
+			GD_BUF[SQ_POWER_ENA]   = off;
+		}
+		GD_BUF[SQ_STANDBY_ENA] = on; //待机	
+		GD_BUF[PUMP1_ENA]      = off;
+		GD_BUF[PUMP2_ENA]      = off;
+		GD_BUF[PUMP3_ENA]      = off;
+		
+		ERR_LED_ON();		                                     //ERR灯亮
+		rt_timer_start(timer_beep); 	                         //使能蜂鸣器控制定时器  			
+	}	
+}
+
+/********************************************************************************
+*函数名: HmRead
+*参数  : *rh 湿度指针
+         *temp 温度指针
+*功能  : 读取紫外腔温湿度
+*返回值: 无
+*********************************************************************************/
+void HmRead(rt_uint32_t *rh, rt_uint32_t *temp) 
+{
+    uv_temp_humi_get(temp,rh);
+}
+
+/********************************************************************************
+*函数名: Hm2Read
+*参数  : *rh 湿度指针
+         *temp 温度指针
+*功能  : 读取红外腔温湿度
+*返回值: 无
+*********************************************************************************/
+void Hm2Read(rt_uint32_t *rh, rt_uint32_t *temp) 
+{
+    ir_temp_humi_get(temp,rh);
+}
+
+void All_Init(void)
+{     
+    get_eeprom_data();              //获取EEPROM存储数据 
+    rt_thread_mdelay(1000);                 
+    Seed_Init();                    //种子源初始化
+    Aom_Init();                     //AOM初始化
+    PUMP_Init();                    //泵浦初始化
+    STHG_Init();                    //二/三倍频初始化     
+    DAC_CBM128S085_Init();          //DAC芯片初始化 
+    
+    ACTIVE_SEED_ENERGY_CTRL(GD_BUF[SEED_LASER_ENERGY_CTRL],Channel_E);  //设置种子源功率
+    Aom1RfSet(GD_BUF[FQ_RF_SCALE],Channel_F);                           //设置Fiber Q射频功率 
+    STHG_TEMP_SET(GD_BUF[SHG_SET],Channel_G);                           //设置二倍频温度
+    STHG_TEMP_SET(GD_BUF[THG_SET],Channel_H);                           //设置三倍频温度
+    SHG_ENA_ON();                 									    //使能二倍频
+    THG_ENA_ON(); 		         									    //使能三倍频
+    
+    ACTIVE_WR_FPGA();           									    //向FPGA写入数据
+    
+    GD_BUF[USER_STATE]        = 0; 
+    GD_BUF[ERR]               = 0;
+    GD_BUF[PUMP1_TEMP_READ]   = 250;
+    GD_BUF[PUMP2_TEMP_READ]   = 250;
+    GD_BUF[PUMP3_TEMP_READ]   = 250; 
+    GD_BUF[PUMP4_TEMP_READ]   = 250;
+    GD_BUF[CAVITY_TEMP_READ]  = 250;
+    GD_BUF[CAVITY2_TEMP_READ] = 250;      
+}
+
+static void Initail_Check_Task(void* parameter)
+{
+ 	 rt_err_t err;
+
+	static rt_uint32_t init_cnt = 0;                                            //初始化过程计时
+    static rt_uint8_t checkItemCnt[8]={0,0,0,0,0,0,0,0};                        //记录每项的检查次数
+    bool checkItemResult[8]={false,false,false,false,false,false,false,false};  //保存初始化时检查项的结果
+	
+	//上电初始化检查项
+	typedef enum
+    {
+		seedItem       = 0,
+		sqItem         = 1,
+		pump1Item      = 2,
+		pump2Item      = 3,
+		pump3Item      = 4,
+		pump4Item      = 5,
+		cavityItem     = 6,
+		cavity2Item    = 7
+	}checkItem;
+
+    while(1)
+    {
+        rt_thread_mdelay(100);                                          //延时100ms
+		//可硬件屏蔽初始化检查
+        if(!ALARM_EN)                                                   
+        {
+            if(GD_BUF[ERR] == none)                                     //无告警
+            {
+				if(GD_BUF[SEED_TYPE] == TOPTICA)
+				{
+					//种子源检查
+					if( SEED_ALARM != 0)      
+					{
+						checkItemCnt[seedItem]++;
+						if(checkItemCnt[seedItem] > SCANNUM)                 //检查SCANNUM遍无异常
+						{
+							checkItemResult[seedItem] = true;
+						}
+					}
+					else
+					{
+						checkItemResult[seedItem] = false;
+						checkItemCnt[seedItem] = 0;
+					}
+				}
+				else if(GD_BUF[SEED_TYPE] == NPI)
+				{
+					checkItemResult[seedItem] = true;
+				} 
+
+				//空间Q检查
+				if(SQ_SWR_ALARM != 0)       
+				{
+					checkItemCnt[sqItem]++;
+					if(checkItemCnt[sqItem] > SCANNUM)
+					{
+						checkItemResult[sqItem] = true;
+					}
+				}
+				else
+				{
+					checkItemResult[sqItem] = false;
+					checkItemCnt[sqItem] = 0;
+				}
+				
+                //泵1温度检查
+                if(IsInSide(GD_BUF[PUMP1_TEMP_READ], GD_BUF[PUMP_TEMP_L_ALARM]+10, GD_BUF[PUMP_TEMP_H_ALARM]-10))//比设定的上下限报警范围小1℃
+                {
+                   	checkItemCnt[pump1Item]++;
+					if(checkItemCnt[pump1Item] > SCANNUM)
+					{
+						checkItemResult[pump1Item] = true;
+					}
+                }
+                else
+                {
+                   	checkItemResult[pump1Item] = false;
+					checkItemCnt[pump1Item] = 0;
+                }
+				
+				//泵2温度检查
+                if(IsInSide(GD_BUF[PUMP2_TEMP_READ], GD_BUF[PUMP_TEMP_L_ALARM]+10, GD_BUF[PUMP_TEMP_H_ALARM]-10))
+                {
+                   	checkItemCnt[pump2Item]++;
+					if(checkItemCnt[pump2Item] > SCANNUM)
+					{
+						checkItemResult[pump2Item] = true;
+					}
+                }
+                else
+                {
+                   	checkItemResult[pump2Item] = false;
+					checkItemCnt[pump2Item] = 0;
+                }
+				
+//				//泵3温度检查
+//                if(IsInSide(GD_BUF[PUMP3_TEMP_READ], GD_BUF[PUMP_TEMP_L_ALARM]+10, GD_BUF[PUMP_TEMP_H_ALARM]-10))
+//                {
+//                   	checkItemCnt[pump3Item]++;
+//					if(checkItemCnt[pump3Item] > SCANNUM)
+//					{
+//						checkItemResult[pump3Item] = true;
+//					}
+//                }
+//                else
+//                {
+//                   	checkItemResult[pump3Item] = false;
+//					checkItemCnt[pump3Item] = 0;
+//                }
+				
+				//腔体1处温度检查
+                if(IsInSide(GD_BUF[CAVITY_TEMP_READ], GD_BUF[CAVITY_TEMP_L_ALARM]+10, GD_BUF[CAVITY_TEMP_H_ALARM]-10))
+                {
+                   	checkItemCnt[cavityItem]++;
+					if(checkItemCnt[cavityItem] > SCANNUM)
+					{
+						checkItemResult[cavityItem] = true;
+					}
+                }
+                else
+                {
+                   	checkItemResult[cavityItem] = false;
+					checkItemCnt[cavityItem] = 0;
+                }	
+				
+				//腔体2处温度检查
+                if(IsInSide(GD_BUF[CAVITY2_TEMP_READ], GD_BUF[CAVITY_TEMP_L_ALARM]+10, GD_BUF[CAVITY_TEMP_H_ALARM]-10))
+                {
+                   	checkItemCnt[cavity2Item]++;
+						if(checkItemCnt[cavity2Item] > SCANNUM)
+						{
+							checkItemResult[cavity2Item] = true;
+						}
+                }
+                else
+                {
+                   	checkItemResult[cavity2Item] = false;
+						checkItemCnt[cavity2Item] = 0;
+                }	
+				
+                //需要初始化检测
+                if(GD_BUF[INIT_TIME] != 0) 
+                {
+                    if(init_cnt++ > GD_BUF[INIT_TIME] * 300) //超过最大初始化时间，报警,以半分钟为步进
+                    {
+                        GD_BUF[ERR_DETAIL] = initailBit;   
+						
+                        GD_BUF[ERR] = initialWarning ;
+						
+                        if(GD_BUF[INIT_ALARM_CNT] < 255) 
+                        { 
+                            GD_BUF[INIT_ALARM_CNT]++;
+                            AT24CXX_WriteOneByte(AddInitAlarmCnt, GD_BUF[INIT_ALARM_CNT]); //记录报警次数
+                        }
+                       return;	         //删除start_task任务自身
+                    }
+                    GD_BUF[INIT_TIME_CNT] = init_cnt / 10;   //1S累加1次
+                }
+                //无需初始化检测等待，直接进入主函数
+                else
+                {
+                    rt_thread_mdelay(2000);             //延时2s
+
+                    GD_BUF[STARTING] = true;
+
+                    return;	//删除start_task任务自身
+                }
+            }
+        }
+        //检查初始化情况，可屏蔽
+		if( ( (checkItemResult[seedItem] && checkItemResult[sqItem] && checkItemResult[pump1Item] && checkItemResult[pump2Item]\
+			&& checkItemResult[cavityItem] ) && (GD_BUF[ERR] == none) ) || ALARM_EN )
+        {
+            GD_BUF[STARTING] = true;
+			
+            return;	//删除start_task任务自身
+        }
+    }
+}
+
+static void other_entry(void* parameter)
+{
+	bool keyInitAct = true;
+	
+	while(1)
+	{	
+		HmRead(&GD_BUF[HM_RH], &GD_BUF[HM_T]);                               //读取紫外腔温湿度值
+		
+		Hm2Read(&GD_BUF[IR_HM_RH], &GD_BUF[IR_HM_T]);                        //读取红外腔温湿度值
+		
+		AlarmSet();                                                          //执行告警动作
+		
+		if(GD_BUF[STARTING])                                                 //初始化完成
+		{
+			Update_LaserTime_CNT();                                          //更新种子源，红外，紫外激光计时
+		
+			if(!ALARM_EN)                                                    //可硬件屏蔽报警
+			{
+				Monitor();                                                   //监测告警量
+			}
+		
+			if( GD_BUF[ERR] == none)                                         //无告警
+			{
+				//fpga除法运算相关
+				Fpga_Data_Calcultate();
+				
+				if( (keyState != KeyScan()) || (keyInitAct) )
+				{
+					keyState = KeyScan();                                        //按钮检测
+					Key_Action(keyState);                                        //按钮功能
+					keyInitAct = false;
+				}
+				
+				if(!keyState)
+				{
+					if(laserSwitchFlag) 
+					{
+						if(GD_BUF[SWITCH])
+						{
+							GD_BUF[SEED_POWER_ENA] = on;
+							GD_BUF[SEED_LASER_ENA] = on;
+							GD_BUF[FQ_POWER_ENA] = on;
+							GD_BUF[SQ_POWER_ENA] = on;
+							GD_BUF[SQ_STANDBY_ENA] = on;
+							GD_BUF[PUMP1_ENA] = on;
+							GD_BUF[PUMP2_ENA] = on;
+							GD_BUF[PUMP3_ENA] = on;
+						}
+						else
+						{			
+							GD_BUF[SEED_POWER_ENA] = off;
+							GD_BUF[SEED_LASER_ENA] = off;
+							GD_BUF[FQ_POWER_ENA] = off;
+							GD_BUF[SQ_POWER_ENA] = off;
+							GD_BUF[SQ_STANDBY_ENA] = on;
+							GD_BUF[PUMP1_ENA] = off;
+							GD_BUF[PUMP2_ENA] = off;
+							GD_BUF[PUMP3_ENA] = off;
+						}
+						AT24CXX_WriteOneByte(AddSeedPower, GD_BUF[SEED_POWER_ENA]);
+						AT24CXX_WriteOneByte(AddSeedLaser, GD_BUF[SEED_LASER_ENA]);
+						AT24CXX_WriteOneByte(AddFqPower, GD_BUF[FQ_POWER_ENA]);
+						AT24CXX_WriteOneByte(AddSqPower, GD_BUF[SQ_POWER_ENA]);
+//						AT24CXX_WriteOneByte(AddSqStandby, GD_BUF[SQ_STANDBY_ENA]); 			
+						AT24CXX_WriteOneByte(AddPump1Ena, GD_BUF[PUMP1_ENA]);
+						AT24CXX_WriteOneByte(AddPump2Ena, GD_BUF[PUMP2_ENA]);
+						AT24CXX_WriteOneByte(AddPump3Ena, GD_BUF[PUMP3_ENA]);
+						
+						laserSwitchFlag = false;		    
+					}
+				}
+			}
+		    //aom2操作
+			Aom2CtrlAct(GD_BUF[SQ_POWER_ENA], GD_BUF[SQ_STANDBY_ENA], GD_BUF[SQ_ATTEN_SEL], GD_BUF[SQ_TYPE]);  //放在此处是让Aom2的控制不受泵开/关限制
+		}
+		rt_thread_mdelay(500);
+	}
 }
 
 static void laser_entry(void* parameter)
@@ -1351,7 +1300,7 @@ static void laser_entry(void* parameter)
 
 int task_init(void)
 {
-    All_Init();   
+    All_Init();                      
     
     tid_init_task = rt_thread_create("initail",
                             Initail_Check_Task, RT_NULL,

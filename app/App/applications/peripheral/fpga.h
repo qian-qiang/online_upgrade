@@ -56,6 +56,6 @@ void SPI2_SetSpeed(rt_uint8_t SpeedSet); //…Ë÷√SPI2ÀŸ∂»
 rt_uint16_t FPGA_Read(rt_uint16_t ReadAddr); 
 void FPGA_Write(rt_uint16_t WriteAddr, rt_uint16_t Data);
 void ACTIVE_WR_FPGA(void);
-
+int spi_fpga_init(void);
 #endif
 

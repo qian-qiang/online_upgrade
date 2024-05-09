@@ -41,18 +41,15 @@ extern "C" {
 //beep
 #define BEEP_PIN            GET_PIN(B,0)
 
-//fan
-#define FAN_PIN             GET_PIN(D,12)
-
 //i2c1
 #define I2C1_WP             GET_PIN(B,7)
 #define I2C1_SCL            GET_PIN(B,8)
 #define I2C1_SDA            GET_PIN(B,9)
 
 //DAC7568
-#define DAC_SCLK_PIN        GET_PIN(F,4) 
-#define DAC_DIN_PIN         GET_PIN(F,5) 
-#define DAC_SYNC_PIN        GET_PIN(F,6) 
+#define DAC_SCLK_PIN        GET_PIN(F,5) 
+#define DAC_DIN_PIN         GET_PIN(F,6) 
+#define DAC_SYNC_PIN        GET_PIN(F,7) 
 
 //SEED 
 #define SEED_POWER_ENA_PIN  GET_PIN(E,7)         
@@ -70,15 +67,16 @@ extern "C" {
 #define SQ_SWR_ALARM        rt_pin_read(SQ_SWR_ALARM_PIN)        //种子源报警
 
 //PIMP
-#define PUMP1_ENA_PIN       GET_PIN(F,3)
-#define PUMP2_ENA_PIN       GET_PIN(F,2)
-#define PUMP3_ENA_PIN		GET_PIN(F,1)
-#define PUMP4_ENA_PIN		GET_PIN(F,0)
+#define PUMP1_ENA_PIN       GET_PIN(F,4)
+#define PUMP2_ENA_PIN       GET_PIN(F,3)
+#define PUMP3_ENA_PIN		GET_PIN(F,2)
+#define PUMP4_ENA_PIN		GET_PIN(F,1)
+#define PUMP5_ENA_PIN		GET_PIN(F,0)
 
 //LED
-#define LED_ERR_PIN         GET_PIN(G,8)
-#define LED_RUN_PIN         GET_PIN(G,7)
-#define LED_LASER_PIN	    GET_PIN(G,6)
+#define LED_ERR_PIN         GET_PIN(G,12)
+#define LED_RUN_PIN         GET_PIN(G,13)
+#define LED_LASER_PIN	    GET_PIN(G,14)
 #define ERR_LED_ON()    	rt_pin_write(LED_ERR_PIN, PIN_LOW)
 #define ERR_LED_OFF()   	rt_pin_write(LED_ERR_PIN, PIN_HIGH)
 #define RUN_LED_ON()        rt_pin_write(LED_RUN_PIN, PIN_LOW)
@@ -87,43 +85,62 @@ extern "C" {
 #define LASER_LED_OFF()   	rt_pin_write(LED_LASER_PIN, PIN_HIGH)
 
 //STHG
-#define SHT_ENA_PIN         GET_PIN(G,3)
-#define THG_ENA_PIN         GET_PIN(G,4)
+#define SHT_ENA_PIN         GET_PIN(E,3)
+#define THG_ENA_PIN         GET_PIN(E,2)
 
 //FPGA
 #define SPI2_CS_B           GET_PIN(B,12)
 #define SPI2_CLK_B          GET_PIN(B,13)
 #define SPI2_MISO_B         GET_PIN(B,14)
 #define SPI2_MOSI_B         GET_PIN(B,15)
+#define CONFIG_DONE         GET_PIN(G,5)
+#define NCONFIG             GET_PIN(G,4)
+#define NCE                 GET_PIN(G,3)
+#define EP_CLK              GET_PIN(A,5)
+#define EP_ASDI             GET_PIN(A,7)
+#define EP_DATA             GET_PIN(A,6)
+#define EP_CS               GET_PIN(A,4)
 
 //ADC
 #define MUXA_ADC_PIN        GET_PIN(C,0)
-#define MUXB_ADC_PIN        GET_PIN(C,2)
-#define MUXC_ADC_PIN        GET_PIN(C,3)
-#define A_IN_SEL0_PIN       GET_PIN(F,9)         
-#define A_IN_SEL1_PIN       GET_PIN(F,8)         
-#define A_IN_SEL2_PIN       GET_PIN(F,7)         
+#define MUXB_ADC_PIN        GET_PIN(C,1)
+#define MUXC_ADC_PIN        GET_PIN(C,2)
+#define A_IN_SEL0_PIN       GET_PIN(F,10)         
+#define A_IN_SEL1_PIN       GET_PIN(F,9)         
+#define A_IN_SEL2_PIN       GET_PIN(F,8)         
 
 //KEY
-#define KEY_SW_PIN			GET_PIN(G,5)    			
+#define KEY_SW_PIN			GET_PIN(G,8)    			
 #define KEY_IN 				rt_pin_read(KEY_SW_PIN)      
 
-//UART1
+//UART1-pc
 #define UART1_TX			GET_PIN(A,9)    			
 #define UART1_RX			GET_PIN(A,10)
 #define UART1_EN			GET_PIN(A,8)
 
-//SPI
+//UART6-debug
+#define UART6_TX			GET_PIN(C,6)    			
+#define UART6_RX			GET_PIN(C,7)
+
+//SPI2-AT24
 #define SPI2_CS			    GET_PIN(B,12)    			
 #define SPI2_SCK			GET_PIN(B,13)
 #define SPI2_MISO			GET_PIN(B,14)
 #define SPI2_MOSI			GET_PIN(B,15)
 
+//SPI3-W25Q64
+#define SPI3_CS			    GET_PIN(A,15)    			
+#define SPI3_SCK			GET_PIN(C,10)
+#define SPI3_MISO			GET_PIN(C,11)
+#define SPI3_MOSI			GET_PIN(C,12)
+
 // LED
-#define PIN_LED1                        GET_PIN(D,4)    //呼吸灯
-#define PIN_LED2                        GET_PIN(D,5)    //PC通信灯
-#define PIN_LED3                        GET_PIN(D,6)    //
-#define PIN_LED4                        GET_PIN(D,7)
+#define PIN_LED1            GET_PIN(D,4)    //呼吸灯
+#define PIN_LED2            GET_PIN(D,5)    //PC通信灯
+#define PIN_LED3            GET_PIN(D,6)    //
+#define PIN_LED4            GET_PIN(D,7)
+
+
 
 #define STM32_FLASH_START_ADRESS     ((uint32_t)0x08000000)
 #define STM32_FLASH_SIZE             (512 * 1024)

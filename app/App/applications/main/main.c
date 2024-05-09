@@ -27,7 +27,6 @@
 #include "task.h"
 #include "fpga.h"
 #include "funtimer.h"
-#include "fan.h"
 #include "fal.h"
 #include <dfs_fs.h>
 #include <ulog_file.h>

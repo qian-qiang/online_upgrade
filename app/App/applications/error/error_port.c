@@ -82,7 +82,7 @@ static void error_lvl_process(void)
             break;
 
         case ERROR_LVL_2:
-            GD_BUF[ERR] = error_lvl_2;
+           // GD_BUF[ERR] = error_lvl_2;
             break;
         
         case ERROR_LVL_3:

@@ -12,12 +12,17 @@
 
 #include "ulog.h"
 #include "cd74xx.h"
- 
-#define ADC_DEV_NAME        "adc1"      /* ADC 设备名称 */
-#define REFER_VOLTAGE       3300         /* 参考电压 3.3V,数据精度乘以100保留2位小数*/
+#include "thermistor.h" 
+
+#define ADC1_DEV_NAME        "adc1"     
+#define ADC2_DEV_NAME        "adc2"     
+#define ADC3_DEV_NAME        "adc3"    
+#define REFER_VOLTAGE       330         /* 参考电压 3.3V,数据精度乘以100保留2位小数*/
 #define CONVERT_BITS        (1 << 12)   /* 转换位数为12位 */
 #define PRESSURE_FILTER_BUF_NUM         (3)
-rt_adc_device_t adc_dev;
+rt_adc_device_t adc_dev1;
+rt_adc_device_t adc_dev2;
+rt_adc_device_t adc_dev3;
 static rt_thread_t adc_read_task = RT_NULL;
 cd74_t cd74 = {0};
 
@@ -44,21 +49,63 @@ rt_err_t  cd74xx_adc_init(void)
 参数  ：通道值 0~16取值范围为：ADC_Channel_0~ADC_Channel_16
 返回值：转换结果
 *********************************************************************************************/ 	
-rt_uint16_t Get_Adc2(rt_uint8_t ch)   
+rt_uint16_t Get_Adc1(rt_uint8_t ch)   
 {
     rt_err_t ret = RT_EOK;
     rt_uint16_t value;
     uint8_t i;
-    ret = rt_adc_enable(adc_dev, ch);
+    ret = rt_adc_enable(adc_dev1, ch);
 
     value = 0;
     
     for(i = 0; i < PRESSURE_FILTER_BUF_NUM; i++)
     {
-        value += rt_adc_read(adc_dev, ch);
+        value += rt_adc_read(adc_dev1, ch);
     }
     
-    ret = rt_adc_disable(adc_dev, ch);
+    ret = rt_adc_disable(adc_dev1, ch);
+  
+    value = value / PRESSURE_FILTER_BUF_NUM;
+
+    return value;
+}
+
+rt_uint16_t Get_Adc2(rt_uint8_t ch)   
+{
+    rt_err_t ret = RT_EOK;
+    rt_uint16_t value;
+    uint8_t i;
+    ret = rt_adc_enable(adc_dev2, ch);
+
+    value = 0;
+    
+    for(i = 0; i < PRESSURE_FILTER_BUF_NUM; i++)
+    {
+        value += rt_adc_read(adc_dev2, ch);
+    }
+    
+    ret = rt_adc_disable(adc_dev2, ch);
+  
+    value = value / PRESSURE_FILTER_BUF_NUM;
+
+    return value;
+}
+
+rt_uint16_t Get_Adc3(rt_uint8_t ch)   
+{
+    rt_err_t ret = RT_EOK;
+    rt_uint16_t value;
+    uint8_t i;
+    ret = rt_adc_enable(adc_dev3, ch);
+
+    value = 0;
+    
+    for(i = 0; i < PRESSURE_FILTER_BUF_NUM; i++)
+    {
+        value += rt_adc_read(adc_dev3, ch);
+    }
+    
+    ret = rt_adc_disable(adc_dev3, ch);
   
     value = value / PRESSURE_FILTER_BUF_NUM;
 
@@ -121,14 +168,35 @@ void SW_AD_Channel(rt_uint8_t Channel)
     cd74.s3_pin = rt_pin_read(A_IN_SEL2_PIN);
 }
 
+/********************************************************************************************
+函数名：TEMP_READ
+功能  ：读泵浦温度
+参数  ：arr[3][8]： 二维数首地址
+		row：行
+		column：列
+返回值：RealTemp-温度值
+*********************************************************************************************/
+int TEMP_READ(rt_uint16_t Arrval, rt_uint8_t cntmeans)
+{
+	int RealTemp;
+	rt_uint16_t ValueBuf;
+	ValueBuf =  Arrval;
+	
+	RealTemp = Temp_Cnt(ValueBuf,cntmeans);                  //将ADC采样值转换为温度值
+	if(RealTemp < 0)                                        
+	{
+		RealTemp= RealTemp * (-1)+1000;				        //用1000以上值表示负温度
+	}
+	return RealTemp;  
+} 
 
 /*********************************************************************
 *监测任务
-*adcArr[0][8]={PUMP1_I,PUMP2_I,PUMP3_I,PUMP4_I,PUMP1_TEMP,PUMP2_TEMP,PUMP3_TEMP,PUMP4_TEMP,}
-*adcArr[1][8]={PUMP1_VOLT,PUMP2_VOLT,PUM3_VOLT,PUM4_VOLT,TEMP_A,TEMP_B,SeedPowerMon,GND}
-*adcArr[2][8]={PD_A,PD_B,PD_C,PD_D,SHG_TEMP,THG_TEMP,GND,GND}
+*adcArr[0][8]={PUMP1_I,PUMP2_I,PUMP3_I,PUMP4_I,PUMP5_I,GND,GND,GND,}
+*adcArr[1][8]={TEMP_A,TEMP_B,PUMP1_TEMP,PUMP2_TEMP,PUMP3_TEMP,PUMP4_TEMP,PUMP5_TEMP,GND}
+*adcArr[2][8]={PD_A,PD_B,PD_C,SEED_MONITOR,SHG_TEMP,THG_TEMP,GND,GND}
 *********************************************************************/
-#define ADC_CHECK_NUM   4
+#define ADC_CHECK_NUM   8
 static void Adc_Read_Task(void* parameter)
 {
     static rt_uint16_t adcArr1[CD74_USE_CHANNEL][ADC_CHECK_NUM],adcArr2[CD74_USE_CHANNEL][ADC_CHECK_NUM],adcArr3[CD74_USE_CHANNEL][ADC_CHECK_NUM];           //记录ADC采样值
@@ -144,9 +212,9 @@ static void Adc_Read_Task(void* parameter)
 			{ 
 				SW_AD_Channel(i);
                 rt_thread_mdelay(10);                
-				adcArr1[i][adc_check_nums] = Get_Adc2(ADCA_DEV_CHANNEL_10);                  
-			    //adcArr1[adc_check_nums][i] = Get_Adc2(ADCB_DEV_CHANNEL_12);
-			    //adcArr1[adc_check_nums][i] = Get_Adc2(ADCC_DEV_CHANNEL_13);
+				adcArr1[i][adc_check_nums] = Get_Adc1(ADCA_DEV_CHANNEL_10);                  
+			    adcArr2[i][adc_check_nums] = Get_Adc2(ADCB_DEV_CHANNEL_11);
+			    adcArr3[i][adc_check_nums] = Get_Adc3(ADCC_DEV_CHANNEL_12);
 			}
 			adc_check_nums++;
 		}
@@ -155,6 +223,9 @@ static void Adc_Read_Task(void* parameter)
             adc_check_nums = 0;
             for(i = 0; i < CD74_USE_CHANNEL; i++)
             {
+                tmp[0] = 0;
+                tmp[1] = 0;
+                tmp[2] = 0;
                 for(j = 0; j < ADC_CHECK_NUM; j++)
                 {
                     tmp[0] += adcArr1[i][j];
@@ -164,58 +235,48 @@ static void Adc_Read_Task(void* parameter)
                 cd74.adcArr[0][i] = tmp[0] / ADC_CHECK_NUM;	
                 cd74.adcArr[1][i] = tmp[1] / ADC_CHECK_NUM;
                 cd74.adcArr[2][i] = tmp[2] / ADC_CHECK_NUM;
-                tmp[0] = 0;
-                tmp[1] = 0;
-                tmp[2] = 0;
             }
 			
             //获取SHG/THG值
-            //GD_BUF[SHG_REAL] = STHG_TEMP_READ(cd74.adcArr[2][4]);
-            //GD_BUF[THG_REAL] = STHG_TEMP_READ(cd74.adcArr[2][5]);
-                
-    //			//获取准直器的红外功率值
-    //			GD_BUF[COLLIMATOR_IR] = adcArr[2][0];
-    //			
-    //			//检查准直器处的种子光
-    //			if(GD_BUF[COLLIMATOR_IR] > collimatorIrThreshold)
-    //			{
-    //				GD_BUF[COLLIMATOR_IR_STATE] = 1;
-    //			}
-    //			else
-    //			{
-    //				GD_BUF[COLLIMATOR_IR_STATE] = 0;
-    //			}
+            GD_BUF[SHG_REAL] = STHG_TEMP_READ(cd74.adcArr[2][4]);
+            GD_BUF[THG_REAL] = STHG_TEMP_READ(cd74.adcArr[2][5]);
                 
             //获取IR/UV的PD采样值
-            //GD_BUF[IR_A] = cd74.adcArr[2][1];
-            //GD_BUF[UV_A] = cd74.adcArr[2][2];
+            GD_BUF[IR_A] = cd74.adcArr[2][1];
+            GD_BUF[UV_A] = cd74.adcArr[2][2];
                  
-             //GD_BUF[IR_A] = CS1180_ReadAdValue();//读AD值cs1180s
-            //获取紫外输出功率
-            //GD_BUF[UV_POWER] = UvLaserPowerRead(GD_BUF[UV_A], GD_BUF[UV_A_MAX], GD_BUF[UV_A_MIN], GD_BUF[UV_P_MAX], GD_BUF[UV_P_MIN], GD_BUF[MODULO_DIVIDER]);
-                
-    //		GD_BUF[UV_POWER] = GD_BUF[COLLIMATOR_IR];
-                
-            //获取红外i输出功率
-            //GD_BUF[IR_POWER] = IRLaserPowerRead(GD_BUF[IR_A], GD_BUF[IR_A_MAX], GD_BUF[IR_A_MIN], GD_BUF[IR_P_MAX], GD_BUF[IR_P_MIN]);
+            //这样写必须在不采集功率的另一个参数全部写零
+            if((GD_BUF[IR_A_MAX] == false) || (GD_BUF[IR_A_MIN] == false)|| (GD_BUF[IR_P_MAX] == false)|| (GD_BUF[IR_P_MIN] == false))
+            {
+                GD_BUF[UV_POWER] = UvLaserPowerRead(GD_BUF[IR_A], GD_BUF[UV_A_MAX], GD_BUF[UV_A_MIN], GD_BUF[UV_P_MAX], GD_BUF[UV_P_MIN], GD_BUF[MODULO_DIVIDER]);
+                GD_BUF[IR_POWER] = 0;
+            }
+			//GD_BUF[UV_POWER] = UvLaserPowerRead(GD_BUF[UV_A], GD_BUF[UV_A_MAX], GD_BUF[UV_A_MIN], GD_BUF[UV_P_MAX], GD_BUF[UV_P_MIN], GD_BUF[MODULO_DIVIDER]);
+			if((GD_BUF[UV_A_MAX] == false) || (GD_BUF[UV_A_MIN] == false)|| (GD_BUF[UV_P_MAX] == false)|| (GD_BUF[UV_P_MIN] == false))
+            {
+                GD_BUF[IR_POWER] = IRLaserPowerRead(GD_BUF[IR_A], GD_BUF[IR_A_MAX], GD_BUF[IR_A_MIN], GD_BUF[IR_P_MAX], GD_BUF[IR_P_MIN]);
+                GD_BUF[UV_POWER] = 0;
+            }
                    
             //获取种子源功率
-            GD_BUF[SEED_LASER_ENERGY_MON] = ACTIVE_SEED_ENERGY_READ(cd74.adcArr[1][6], GD_BUF[SEED_TYPE]);
+            GD_BUF[SEED_LASER_ENERGY_MON] = ACTIVE_SEED_ENERGY_READ(cd74.adcArr[2][3], GD_BUF[SEED_TYPE]);
     //		if (GD_BUF[SEED_LASER_ENERGY_MON] < 10)
     //			GD_BUF[SEED_LASER_ENERGY_MON] = 0;
                 
             //获取LD和腔体温度
-            //GD_BUF[CAVITY2_TEMP_READ] = TEMP_READ(cd74.adcArr[1][5], 0); 
-            //GD_BUF[CAVITY_TEMP_READ]  = TEMP_READ(cd74.adcArr[1][4], 0);
-            //GD_BUF[PUMP1_TEMP_READ]   = TEMP_READ(cd74.adcArr[0][4], 0);
-            //GD_BUF[PUMP2_TEMP_READ]   = TEMP_READ(cd74.adcArr[0][5], 0);
-    //      GD_BUF[PUMP3_TEMP_READ]   = TEMP_READ(adcArr[0][6], 0);
+            GD_BUF[CAVITY2_TEMP_READ] = TEMP_READ(cd74.adcArr[1][1], 0);    
+            GD_BUF[CAVITY_TEMP_READ]  = TEMP_READ(cd74.adcArr[1][0], 0);	
+            GD_BUF[PUMP1_TEMP_READ]   = TEMP_READ(cd74.adcArr[1][2], 0);
+            GD_BUF[PUMP2_TEMP_READ]   = TEMP_READ(cd74.adcArr[1][3], 0);
+            GD_BUF[PUMP3_TEMP_READ]   = TEMP_READ(cd74.adcArr[1][4], 0);
+            //GD_BUF[PUMP4_TEMP_READ]   = TEMP_READ(cd74.adcArr[1][5], 0);
+
                 
             //获取LD电流
             GD_BUF[PUMP1_I_READ] = PUMP_I_READ(cd74.adcArr[0][0]);
             GD_BUF[PUMP2_I_READ] = PUMP_I_READ(cd74.adcArr[0][1]);
-    //      GD_BUF[PUMP3_I_READ] = PUMP_I_READ(adcArr[0][2]); 
-    //	    GD_BUF[PUMP4_I_READ] = PUMP_I_READ(adcArr[0][3]);	
+            GD_BUF[PUMP3_I_READ] = PUMP_I_READ(cd74.adcArr[0][2]); 
+    	    //GD_BUF[PUMP4_I_READ] = PUMP_I_READ(cd74.adcArr[0][3]);	
 		}
 		rt_thread_mdelay(500);
 	}
@@ -224,12 +285,21 @@ static void Adc_Read_Task(void* parameter)
 int cd74_thread_init(void)
 {
     /* 查找设备 */
-    adc_dev = (rt_adc_device_t)rt_device_find(ADC_DEV_NAME);
-    if (adc_dev == RT_NULL)
+    adc_dev1 = (rt_adc_device_t)rt_device_find(ADC1_DEV_NAME);
+    if (adc_dev1 == RT_NULL)
     {
-        rt_kprintf("adc sample run failed! can't find %s device!\n", ADC_DEV_NAME);
+        rt_kprintf("adc run failed! can't find %s device!\n", ADC1_DEV_NAME);
     }
-    
+    adc_dev2 = (rt_adc_device_t)rt_device_find(ADC2_DEV_NAME);
+    if (adc_dev2 == RT_NULL)
+    {
+        rt_kprintf("adc run failed! can't find %s device!\n", ADC2_DEV_NAME);
+    }
+    adc_dev3 = (rt_adc_device_t)rt_device_find(ADC3_DEV_NAME);
+    if (adc_dev3 == RT_NULL)
+    {
+        rt_kprintf("adc run failed! can't find %s device!\n", ADC3_DEV_NAME);
+    }
     adc_read_task = rt_thread_create("cd74",
                             Adc_Read_Task, RT_NULL,
                             2048,
@@ -244,9 +314,9 @@ static void cd74_read(uint8_t argc, char **argv)
 {
     rt_uint32_t vol;
     const char *adc_name[CD74_NUM][CD74_USE_CHANNEL]={ \
-            {"PUMP1_I","PUMP2_I","PUMP3_I","PUMP4_I","PUMP1_TEMP","PUMP2_TEMP","PUMP3_TEMP","PUMP4_TEMP"},
-            {"PUMP1_VOLT","PUMP2_VOLT","PUM3_VOLT","PUM4_VOLT","TEMP_A","TEMP_B","SeedPowMon","GND"},
-            {"PD_A","PD_B","PD_C","PD_D","SHG_TEMP","THG_TEMP","GND","GND"}};
+            {"PUMP1_I","PUMP2_I","PUMP3_I","PUMP4_I","PUMP5_I","GND","GND","GND"},
+            {"TEMP_A","TEMP_B","PUMP1_TEMP","PUMP2_TEMP","PUM3_TEMP","PUM4_TEMP","GND","GND"},
+            {"PD_A","PD_B","PD_C","SHG_TEMP","THG_TEMP","GND","GND","GND"}};
 
     rt_kprintf("cd74.s1_pin               = %s      \n", (cd74.s1_pin == PIN_HIGH)?"PIN_HIGH":"PIN_LOW");
     rt_kprintf("cd74.s2_pin               = %s      \n", (cd74.s2_pin == PIN_HIGH)?"PIN_HIGH":"PIN_LOW");
@@ -256,7 +326,7 @@ static void cd74_read(uint8_t argc, char **argv)
         for(int j = 0; j < CD74_USE_CHANNEL; j++)
         {
             vol = cd74.adcArr[i][j] * REFER_VOLTAGE / CONVERT_BITS;
-            rt_kprintf("cd74.adcArr[%s \t\t]         :%d.%02d mv      \n", adc_name[i][j], vol / 100, vol % 100); 
+            rt_kprintf("cd74.adcArr[%s \t\t]         :%d.%02d v      \n", adc_name[i][j], vol / 100, vol % 100); 
         }
     }  
 }

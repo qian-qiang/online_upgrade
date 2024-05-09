@@ -7,6 +7,13 @@
  * Change Logs:
  * Date           Author       Notes
  * 2018-11-06     qq           first version
+ * CONFIG_DONE  PGout(5)
+ * NCONFIG		PGout(4)
+ * NCE 			PGout(3)
+ * EP_CLK       PAout(5)
+ * EP_ASDI      PAout(7)     发送数据
+ * EP_DATA      PAin(6)      接收数据
+ * EP_CS        PAout(4)
  */
 #define LOG_TAG   "fpga"  
 #define LOG_LVL   LOG_LVL_DBG 
@@ -23,12 +30,18 @@ struct rt_spi_device *spi_dev_fpga;
 {                                                           \
     .mode = RT_SPI_MASTER | RT_SPI_MODE_0 | RT_SPI_MSB,     \
     .data_width = 16,                                       \
-    .max_hz = 10 * 1000 * 1000,                             \
+    .max_hz = 5 * 1000 * 1000,                             \
 }
 
 static int spi_fpga_init(void)
 {
-    SPI_InitTypeDef  SPI_InitStructure;
+    //CONFIG_DONE  NCONFIG不需要在这里初始化 否则上电fpga有问题  
+    //因为上电fpga下载引脚是有时序要求的  引脚在cubemx中初始化了
+    rt_pin_mode(NCE, PIN_MODE_OUTPUT);
+    rt_pin_mode(EP_CLK, PIN_MODE_OUTPUT);
+    rt_pin_mode(EP_ASDI, PIN_MODE_OUTPUT);
+    rt_pin_mode(EP_CS, PIN_MODE_OUTPUT);
+   
     struct rt_spi_configuration cfg = RT_FPGA_DEFAULT_SPI_CFG;
     
     __HAL_RCC_GPIOB_CLK_ENABLE();
@@ -41,11 +54,12 @@ static int spi_fpga_init(void)
         log_e("spi_dev_fpga spi device not find.");
         return -RT_ERROR;
     }
+    spi_dev_fpga->bus->owner = spi_dev_fpga;   
     rt_spi_configure(spi_dev_fpga, &cfg);
     
     return RT_EOK;
 }
-INIT_PREV_EXPORT(spi_fpga_init);
+INIT_COMPONENT_EXPORT(spi_fpga_init);
 //spitools init spi20 spi2 28
 
 //以下是SPI模块的初始化代码，配置成主机模式 						  

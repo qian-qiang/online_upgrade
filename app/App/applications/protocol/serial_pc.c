@@ -80,12 +80,12 @@ static void serial_thread_entry(void *parameter)
         {
             rx_length = rt_device_read(msg.dev, 0, rx_buffer, msg.size);
             rt_pin_write(PIN_UART_LED,!rt_pin_read(PIN_UART_LED));
-            rt_kprintf("pc send: ");
-            for(uint16_t i = 0; i < rx_length; i++)
-            {
-                rt_kprintf("%x ",rx_buffer[i]);
-            }
-            rt_kprintf("\r\n");
+//            rt_kprintf("pc send: ");
+//            for(uint16_t i = 0; i < rx_length; i++)
+//            {
+//                rt_kprintf("%x ",rx_buffer[i]);
+//            }
+//            rt_kprintf("\r\n");
             //这里设计两个模式：1：控制数据模式  2：ymodem数据模式
             if(uart_mode == UART_CMD_MODE)
             {

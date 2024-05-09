@@ -52,7 +52,7 @@
             this.linkLabel1.AutoSize = true;
             this.linkLabel1.Location = new System.Drawing.Point(81, 61);
             this.linkLabel1.Name = "linkLabel1";
-            this.linkLabel1.Size = new System.Drawing.Size(149, 12);
+            this.linkLabel1.Size = new System.Drawing.Size(119, 12);
             this.linkLabel1.TabIndex = 1;
             this.linkLabel1.TabStop = true;
             this.linkLabel1.Text = "845343253@gmail.com";
@@ -89,7 +89,7 @@
             this.label5.AutoSize = true;
             this.label5.Location = new System.Drawing.Point(83, 9);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(65, 12);
+            this.label5.Size = new System.Drawing.Size(41, 12);
             this.label5.TabIndex = 0;
             this.label5.Text = "v1.0.0";
             // 
@@ -98,16 +98,16 @@
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(81, 34);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(53, 12);
+            this.label6.Size = new System.Drawing.Size(77, 12);
             this.label6.TabIndex = 0;
-            this.label6.Text = ".bin.hex";
+            this.label6.Text = ".bin.hex.rbl";
             // 
             // label7
             // 
             this.label7.AutoSize = true;
             this.label7.Location = new System.Drawing.Point(81, 86);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(71, 12);
+            this.label7.Size = new System.Drawing.Size(23, 12);
             this.label7.TabIndex = 0;
             this.label7.Text = "JPT";
             // 
@@ -115,7 +115,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(249, 113);
+            this.ClientSize = new System.Drawing.Size(249, 112);
             this.Controls.Add(this.linkLabel1);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.label4);
