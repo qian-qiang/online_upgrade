@@ -34,7 +34,7 @@
 
 #define HEART_LED    PIN_LED1
 
-const char product_tab[32]    = {"main_board"};          	        /**<  产品名称   */
+const char product_tab[32]    = {"main_board"};          	                /**<  产品名称   */
 const char project_tab[32]    = {"main_board_app"};                         /**<  工程名称   */
 char versions_tab[16]   = {"1.0.240425"};                                   /**<  版本信息   */
 const char hard_board_tab[16] = {"1.0.0"};                                  /**<  硬件信息   */

@@ -77,7 +77,7 @@
             // 
             // openFileDialog1
             // 
-            this.openFileDialog1.Filter = "binfile|*.bin|hex文件|*.hex*|rbl|*.rbl";
+            this.openFileDialog1.Filter = "rbf|*.rbf|rbl|*.rbl";
             this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
             // 
             // btn_select_hex

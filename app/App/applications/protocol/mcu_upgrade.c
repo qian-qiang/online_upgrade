@@ -5,116 +5,40 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2024-04-24     qianqiang    the first version
+ * 2019-10-31     qq           the first version
  */
  
-#define LOG_TAG      "mcu_upgrade"
-#define LOG_LVL      LOG_LVL_DBG
+#define LOG_TAG      "recver.file"
+#define LOG_LVL      LOG_LVL_INFO
+
 #include <ulog.h>
-#include "mcu_upgrade.h"
-#include "easyflash.h"
+#include <rthw.h>
 #include <rtthread.h>
+#include <shell.h>
+#include <finsh.h>
+#include <easyflash.h>
+#include <ymodem.h>
+#include <board.h>
 #include <dfs_posix.h>
+#include <sys/time.h>
+#include <ymodem.h>
 #include "fal.h"
 #include "serial_unpack.h"
+#include "mcu_upgrade.h"
+#include "protocol_id.h"
 
 #define PART_DOWNLOAD_NAME    "fm_area"
-#define APP_BIN_NAME   		  "mcu_app.rbl"
+#define APP_BIN_NAME   		  "mcu_app.bin"
 
-static uint8_t mcu_upgrade_flag = false;
+static size_t update_file_total_size, update_file_cur_size;
+static uint32_t crc32_checksum = 0;
+static const struct fal_partition *part_download = NULL;
+static uint32_t crc32_value = 0;
+static uint8_t mcu_bin_rec_flag = false;
 static uint8_t per_printf = 0;
-    
-static void log_out_print(size_t size, size_t total_size)
-{
-    float per = size * 100 / total_size;
-    
-    if(per - per_printf >= 5)
-    {
-        per_printf = per;
-        rt_kprintf("log output %3d%\r\n",per_printf);
-        //screen_protocol_16_send(PROTOCOL_CMD_CTRLBOX_TO_PROXIMAL_SCREEN_UPGRADE_CTRLBOX_PER, per_printf);
-    }
-}
 
-static int upgrade_app_size_get(void)
-{
-	int ret;
-	struct stat buf;
-	char addr_buf[32] = {0};
-	
-	sprintf(addr_buf,"/%s",APP_BIN_NAME);
-	
-	ret = stat(addr_buf, &buf);
-	if(ret == 0)
-	{
-		log_d("%s file size = %d",APP_BIN_NAME, buf.st_size);
-		return buf.st_size;
-	}
-	else
-	{
-		log_e("%s file not fonud",APP_BIN_NAME);
-		
-//		error_insert(ERROR_ID_SD_INSTALL_FAULT);
-		return 0;
-	}
-}
-
-static int upgrade_app_crc_cal(uint32_t cal_size)
-{
-	int fd, cur_size, size_else, size;
-	uint32_t buff[32];
-	char addr_buf[32] = {0};
-	size_t crc_value_get = 0;
-	
-	sprintf(addr_buf,"/%s",APP_BIN_NAME);
-	
-	size_else = cal_size % sizeof(buff);
-	
-	fd = open(addr_buf, O_RDONLY);
-	
-	if (fd>= 0)
-    {
-		lseek(fd, 0, 0);
-		
-		for(cur_size = 0; cur_size < (cal_size - size_else); cur_size += sizeof(buff))
-		{
-			size = read(fd, buff, sizeof(buff));
-			
-			if(size < 0)
-			{
-				log_d("%s file read error",APP_BIN_NAME);
-				close(fd);
-				return 0;
-			}
-			
-			crc_value_get = ef_calc_crc32(crc_value_get, (uint8_t*)buff, sizeof(buff));
-		}
-		
-		if( 0 != size_else)
-		{
-			size = read(fd, buff, size_else);
-			crc_value_get = ef_calc_crc32(crc_value_get, (uint8_t*)buff, size_else);
-			
-			if(size < 0)
-			{
-				log_d("%s file read error",APP_BIN_NAME);
-				close(fd);
-				return 0;
-			}
-        }
-        
-    }
-	else
-	{
-		log_e("%s file not fonud",APP_BIN_NAME);
-		close(fd);
-		return 0;
-	}
-	
-	return crc_value_get;
-}
-
-static uint32_t dfu_crc_cal(uint32_t size)
+extern uint16_t uart_mode;
+static uint32_t dfu_part_cal(char* part_name,size_t size)
 {
 	size_t cur_addr = 0;
 	uint32_t buff[32];
@@ -150,186 +74,155 @@ static uint32_t dfu_crc_cal(uint32_t size)
 	return crc_value_get;
 }
 
-static rt_err_t upgrade_copy_to_download(uint32_t app_size)
+static void log_out_print(size_t size, size_t total_size)
 {
-	rt_err_t result = RT_EOK;
-	int fd;
-	size_t cur_size,size,size_else;
-    uint32_t cur_addr;
-	static const struct fal_partition *part_download = NULL;
-    uint32_t buff[32];
-	char addr_buf[32] = {0};
+    can_cmd_t can_cmd;
+    float per = size * 100 / total_size;
+    
+    if(per - per_printf >= 5)
+    {
+        per_printf = per;
+        log_i("topctrl upgrade tran: %d%%",per_printf);
 
+        uart_cmd_t uart_cmd_send;
+        uart_cmd_send.wr = CMD_WRITE;
+        uart_cmd_send.cmd = MCU_UPGRADE; 
+        uart_cmd_send.size = 4;
+        uart_cmd_send.data[0] = per_printf;
+       
+        uart_pc_protocol_send(&uart_cmd_send);
+        rt_thread_mdelay(20);
+    }
+}
+
+static enum rym_code ymodem_on_begin(struct rym_ctx *ctx, rt_uint8_t *buf, rt_size_t len) {
+    char *file_name, *file_size;
+
+    /* calculate and store file size */
+    file_name = (char *) &buf[0];
+    file_size = (char *) &buf[rt_strlen(file_name) + 1];
+    update_file_total_size = atol(file_size);
+    /* 4 bytes align */
+    update_file_total_size = (update_file_total_size + 3) / 4 * 4;
+    update_file_cur_size = 0;
+    crc32_checksum = 0;
+
+    per_printf = 0;
+    
 	part_download = fal_partition_find(PART_DOWNLOAD_NAME);
 	RT_ASSERT(part_download);
 	
-	fal_partition_erase_all(part_download);
-
-	rt_thread_delay(1000);
-	log_d("part download erase.");
-	
-	sprintf(addr_buf,"/%s",APP_BIN_NAME);
-	fd = open(addr_buf, O_RDONLY);
-
-	size_else = app_size % sizeof(buff);
-	
-    per_printf = 0;
+    rt_kprintf("upgrade begin, size :%d B\r\n",update_file_total_size);
     
-	if(fd > 0)
-	{
-		for (cur_size = 0; cur_size < (app_size - size_else); cur_size += sizeof(buff)) 
-		{
-			cur_addr = 0 + cur_size;
-			
-			size = read(fd, buff, sizeof(buff));
-			
-			if(size != sizeof(buff))
-			{
-				log_e("file %s read error.",APP_BIN_NAME);
-				result = -RT_ERROR;
-			}
-			
-			size = fal_partition_write(part_download, cur_addr, (uint8_t*)buff, sizeof(buff));
-			
-			if(size != sizeof(buff))
-			{
-				printf("part download write error.\r\n");
-				result = -RT_ERROR;
-			}
-            
-            log_out_print(cur_size, app_size);
-		}
-		
-		if(size_else)
-		{
-			cur_addr = app_size - size_else;
-            
-			cur_size += size_else;
-			size = read(fd, buff, size_else);
-			
-			if(size != size_else)
-			{
-				log_e("file %s read error.",APP_BIN_NAME);
-				result = -RT_ERROR;
-			}
-			
-			size = fal_partition_write(part_download, cur_addr, (uint8_t*)buff, size_else);
-			
-			if(size != size_else)
-			{
-				printf("part download write error.\r\n");
-				result = -RT_ERROR;
-			}
-            
-            log_out_print(cur_size, app_size);
-		}
-	}
-	else
-	{
-		log_e("%s file not fonud",APP_BIN_NAME);
-		result = -RT_ERROR;
-	}
-	
-	close(fd);
-	
-	return result;
+    /* erase backup section */
+    if (fal_partition_erase_all(part_download) <= 0) {
+        /* if erase fail then end session */
+        return RYM_CODE_CAN;
+    }
+
+    return RYM_CODE_ACK;
 }
 
-#define UPGRADE_OK 0X0002
-#define UPGRADE_FAILED 0X0001
-
-static void thread_upgrade_entry(void *parameter)
-{
-	uint32_t app_size;
-	int crc_value_fd,crc_value_download;
-	char char_value[21] = { 0 };
+static enum rym_code ymodem_on_data(struct rym_ctx *ctx, rt_uint8_t *buf, rt_size_t len) {
     
-    //screen_protocol_16_send(PROTOCOL_CMD_CTRLBOX_TO_PROXIMAL_SCREEN_UPGRADE_CTRLBOX_CIRCLE, true);   
-	app_size = upgrade_app_size_get();
-  
-    if(0 == app_size)
-    {
-        goto __exit;
+	RT_ASSERT(part_download);
+    
+    if (update_file_cur_size + len <= update_file_total_size) {
+        crc32_checksum = ef_calc_crc32(crc32_checksum, buf, len);
+    } else {
+        crc32_checksum = ef_calc_crc32(crc32_checksum, buf, update_file_total_size - update_file_cur_size);
     }
-	
-	crc_value_fd = upgrade_app_crc_cal(app_size);
-	
-	log_d("crc value: 0x%x",crc_value_fd);
+    
+    /* write data of application to backup section  */
+    if(fal_partition_write(part_download, update_file_cur_size, (uint8_t*)buf, len) <= 0) {
+        /* if write fail then end session */
+        return RYM_CODE_CAN;
+    }
 
-	if(RT_EOK == upgrade_copy_to_download(app_size))
-	{
-		log_i("upgrade copy to download size:%d",app_size);
-		
-	}
-	else
-	{
-		log_e("upgrade copy to download fail");
-		goto __exit;
-	}
-	
-	crc_value_download = dfu_crc_cal(app_size);
-	
-	log_d("dfu crc value: 0x%x",crc_value_download);
-	
-	if(crc_value_download == crc_value_fd)
-	{
-		rt_memset(char_value,0,20);
-		snprintf(char_value, 20, "%d", crc_value_fd);
-		ef_set_env("iap_check_value_app",char_value);
-		
-		rt_memset(char_value,0,20);
-		snprintf(char_value, 20, "%d", app_size);
-		ef_set_env("iap_copy_app_size",char_value);
-        ef_set_env("iap_need_copy_app","1");
-        ef_save_env();
-		log_d("crc check succ,set env flag.");
+    update_file_cur_size += len;
+    //log_out_print(update_file_cur_size, update_file_total_size);
+    
+    return RYM_CODE_ACK;
+}
+
+static rt_err_t ymodem_recv(void) 
+{
+    rt_err_t result = -RT_ERROR;
+    char  c_file_size[21] = { 0 }, c_crc32_checksum[21] = { 0 };
+    struct rym_ctx rctx;
+    rt_device_t dev;
+    
+    dev = rt_device_find("u_ymodem");
+    
+    rt_kprintf("ymodem recv start.\r\n");
+    
+    if (!rym_recv_on_device(&rctx, dev, RT_DEVICE_OFLAG_RDWR | RT_DEVICE_FLAG_INT_RX,
+            ymodem_on_begin, ymodem_on_data, NULL, RT_TICK_PER_SECOND)) {
+        /* wait some time for terminal response finish */
+        rt_thread_delay(RT_TICK_PER_SECOND);
+        /* save the downloaded firmware crc32 checksum ENV */
+
+//        if(crc32_value != crc32_checksum)
+//        {
+//            log_e("transmit crc value check fail.");
+//            goto __exit;
+//        }   
+
+//        if(crc32_value != dfu_part_cal(PART_DOWNLOAD_NAME, update_file_total_size))
+//        {
+//            log_e("%s crc value check fail.",PART_DOWNLOAD_NAME);
+//            goto __exit;
+//        }
+                  
+        rt_snprintf(c_crc32_checksum, sizeof(c_crc32_checksum), "%d", crc32_checksum);
+        //ef_set_env("iap_check_value_app", c_crc32_checksum);
+        /* set need copy application from backup section flag is 1, backup application length */
+        rt_sprintf(c_file_size, "%ld", update_file_total_size);
+        //ef_set_env("iap_copy_app_size", c_file_size);
+        //ef_set_env("iap_need_copy_app", "1");
+        //ef_save_env();
+        log_d("crc check succ,set env flag.");
 		log_i("reboot now after 1s.");
         
-        //screen_protocol_16_send(PROTOCOL_CMD_CTRLBOX_TO_PROXIMAL_SCREEN_UPGRADE_CTRLBOX_CIRCLE, false);   
-        //screen_protocol_16_send(PROTOCOL_CMD_CTRLBOX_TO_PROXIMAL_SCREEN_UPGRADE_CTRLBOX_OK_FAIL, UPGRADE_OK);   
-        
 		rt_thread_delay(1000);
-		
-		rt_hw_cpu_reset();
-	}
-	else
-	{
+        rt_hw_cpu_reset();
+    } else {
+        /* wait some time for terminal response finish */
         rt_thread_delay(RT_TICK_PER_SECOND);
-		log_e("Update firmware fail.");
-        goto __exit;
-	}
-
+        mcu_bin_rec_flag = false;
+        log_e("Update firmware fail.");
+    }
+    
 __exit:
-    //screen_protocol_16_send(PROTOCOL_CMD_CTRLBOX_TO_PROXIMAL_SCREEN_UPGRADE_CTRLBOX_CIRCLE, false);   
-    //screen_protocol_16_send(PROTOCOL_CMD_CTRLBOX_TO_PROXIMAL_SCREEN_UPGRADE_CTRLBOX_OK_FAIL, UPGRADE_FAILED);   
-	mcu_upgrade_flag = false;
+    
+    return result;
 }
 
-void mcu_upgrade(void)
+static void thread_mcu_bin_rec(void *parameter)
 {
-	if(false == mcu_upgrade_flag)
+    rt_err_t result;
+    uart_mode = UART_YMODEM_MODE;
+
+    result = ymodem_recv();
+    
+    log_e("mcu upgrade fail.");
+
+    uart_mode = UART_CMD_MODE;
+}
+
+void mcu_bin_file_rec(uint32_t crc_value)
+{
+    crc32_value = crc_value;
+    
+	if(false == mcu_bin_rec_flag)
 	{
-		rt_thread_t tid_upgrade = rt_thread_create("mcu_upgrade",
-							    thread_upgrade_entry, RT_NULL,
+		rt_thread_t mcu_bin_rec = rt_thread_create("mcu_bin_r",
+							    thread_mcu_bin_rec, RT_NULL,
 							    2048,
-							    26, 
+							    27, 
 							    20);
-	
-		if(RT_EOK == rt_thread_startup(tid_upgrade))
-		{
-			mcu_upgrade_flag = true;
-		}
+        log_i("mcu_bin_file_rec thread starting....");
+		rt_thread_startup(mcu_bin_rec);
+        mcu_bin_rec_flag = true;
 	}
 }
-
-
-#if defined(RT_USING_FINSH) && defined(FINSH_USING_MSH)
-#include <finsh.h>
-static void ctrlbox_ota(uint8_t argc, char **argv)
-{
-	mcu_upgrade();
-}
-MSH_CMD_EXPORT(ctrlbox_ota, app upgrade);
-#endif /* defined(RT_USING_FINSH) && defined(FINSH_USING_MSH) */
-
-

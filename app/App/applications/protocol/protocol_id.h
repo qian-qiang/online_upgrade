@@ -21,6 +21,7 @@ extern uint32_t GD_BUF[GD_LEN];
 
 #define UART_CMD_MODE       0
 #define UART_YMODEM_MODE    1
+#define UART_YMODEM_MODE    1
 
 typedef struct
 {
@@ -244,8 +245,7 @@ typedef enum
 #define LOG_SYNC                                        155             //日志同步
 #define MCU_UPGRADE                                     156             //MCU文件升级
 #define FPGA_UPGRADE                                    157             //FPGA文件升级
-#define MCU_YMODEM                                      158             //MCU文件YMODEM协议
-#define FPGA_YMODEM                                     159             //FPGA文件YMODEM协议
+
 //参数在EEPROM的存储地址
 typedef enum
 {

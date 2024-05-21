@@ -26,6 +26,7 @@ namespace yomdem_test
 
         private delegate void FlushClient(); //代理
         int packetNumber = 0;
+        int send_packetNumber = 0;
         string path;
        
         int fsLen;
@@ -71,8 +72,8 @@ namespace yomdem_test
               }
               else
               {
-                  this.txb_section.Text = packetNumber.ToString();
-                  pgb_download.Value = (int)(((float)packetNumber / (float)fsLen) * 100);
+                  this.txb_section.Text = send_packetNumber.ToString();
+                  pgb_download.Value = (int)(((float)send_packetNumber / (float)fsLen) * 100);
               }
           }
      
@@ -101,12 +102,20 @@ namespace yomdem_test
         
             /* get the file */
             FileStream fileStream = new FileStream(@path, FileMode.Open, FileAccess.Read);
-             
-            
-            DateTime dt= DateTime.Now; 
 
-            byte[] ack;
-            ack = new byte[11] { 0xfe, 0xef, 0xff, 0x02, 0x9c, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc3};
+            DateTime dt= DateTime.Now;
+
+            string fileExtension = Path.GetExtension(path);
+            byte[] ack = null;
+            if (fileExtension == ".rbf")
+            {
+                ack = new byte[11] { 0xfe, 0xef, 0xff, 0x02, 0x9d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3d };
+            }
+            else if (fileExtension == ".rbl")
+            {
+                ack = new byte[11] { 0xfe, 0xef, 0xff, 0x02, 0x9c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3c };
+            }
+
             try
             {
                 serialPort1.Write(ack, 0, 11);
@@ -151,6 +160,7 @@ namespace yomdem_test
 
                     /* calculate packetNumber */
                     packetNumber++;
+                    send_packetNumber++;
                     if (packetNumber > 255)
                         packetNumber -= 256;
 
@@ -185,6 +195,7 @@ namespace yomdem_test
                 }
                 /* send closing packet */
                 packetNumber = 0;
+                send_packetNumber = 0;
                 invertedPacketNumber = 255;
                 data = new byte[dataSize];
                 CRC = new byte[crcSize];

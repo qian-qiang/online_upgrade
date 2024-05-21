@@ -26,7 +26,8 @@
 #include "ShgThg.h"
 #include <stdlib.h>
 #include <sys/time.h>
-#include "recver_file.h"
+#include "mcu_upgrade.h"
+#include "fpga_upgrade.h"
 #include "drv_uart_ymodem.h"
 
 static void uart_protocol_unpack(uart_cmd_t *pack, uint8_t* data, uint16_t size);
@@ -1504,14 +1505,17 @@ static void pc_handle_cb(uint8_t *d, uint16_t size)
          
          case MCU_UPGRADE:
             log_d("pc send mcu upgrade cmd");	
-            uint32_t crc32_value = 0;
-            rt_memcpy(&crc32_value, &cmd_unpack.data[0], 4);
-            mcu_bin_file_rec(crc32_value);
+            uint32_t mcu_crc32_value = 0;
+            rt_memcpy(&mcu_crc32_value, &cmd_unpack.data[0], 4);
+            mcu_bin_file_rec(mcu_crc32_value);
 			break;	
          
-         case MCU_YMODEM:
-            drv_uart_ymodem_pc_to_mcu(&cmd_unpack, size);   //注意这里获取到的是真实的ymodem数据  
-            break;
+         case FPGA_UPGRADE:
+            log_d("pc send fpga upgrade cmd");	
+            uint32_t foga_crc32_value = 0;
+            rt_memcpy(&foga_crc32_value, &cmd_unpack.data[0], 4);
+            fpga_upgarde_file_rec(foga_crc32_value);
+			break;	
 		default:    
             break;            				
 	}

@@ -598,16 +598,6 @@
               <FilePath>applications\protocol\drv_uart_ymodem.c</FilePath>
             </File>
             <File>
-              <FileName>mcu_upgrade.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\protocol\mcu_upgrade.c</FilePath>
-            </File>
-            <File>
-              <FileName>receive_file.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\protocol\receive_file.c</FilePath>
-            </File>
-            <File>
               <FileName>serial_pc.c</FileName>
               <FileType>1</FileType>
               <FilePath>applications\protocol\serial_pc.c</FilePath>
@@ -616,6 +606,21 @@
               <FileName>serial_unpack.c</FileName>
               <FileType>1</FileType>
               <FilePath>applications\protocol\serial_unpack.c</FilePath>
+            </File>
+            <File>
+              <FileName>mcu_upgrade.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\applications\protocol\mcu_upgrade.c</FilePath>
+            </File>
+            <File>
+              <FileName>fpga_upgrade.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\applications\protocol\fpga_upgrade.c</FilePath>
+            </File>
+            <File>
+              <FileName>fpgaupdate.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\applications\protocol\fpgaupdate.c</FilePath>
             </File>
           </Files>
         </Group>
