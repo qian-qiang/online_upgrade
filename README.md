@@ -5,7 +5,7 @@ pc端对MCU和FPGA的在线升级
 
 #### 软件架构
 bootload(c)——app(c)——pc(c#)
-
+![alt text](image.png)
 
 #### 开发记录
 

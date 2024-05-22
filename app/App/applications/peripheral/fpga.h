@@ -5,7 +5,6 @@
 #include <board.h>
 #include <rtdevice.h>
 #include "protocol_id.h"
-#include "aom.h"
 
 #define FPGA_CS                  SPI2_CS_B        //SPI2_cs
 	

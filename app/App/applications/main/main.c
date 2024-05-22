@@ -5,7 +5,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2018-11-06     misonyo   first version
+ * 2024-5-22      qq           first version
  */
 #define LOG_TAG      "main"
 #define LOG_LVL      LOG_LVL_DBG
@@ -18,15 +18,9 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include "easyflash.h"
-#include "error.h"
-#include "param.h"
-#include "at24c08.h"
 #include "no_bug.h"
 #include "serial_pc.h"
-#include "cd74xx.h"
-#include "task.h"
 #include "fpga.h"
-#include "funtimer.h"
 #include "fal.h"
 #include <dfs_fs.h>
 #include <ulog_file.h>
@@ -119,10 +113,7 @@ void mount_littlefs (void)
 
 void board_init(void)
 {
-    rt_pin_mode(ALARM_EN_PIN, PIN_MODE_INPUT_PULLUP);
     fal_init();
-    AT24CXX_Init();
-    cd74xx_adc_init();
     fpga_spi2_init();
     easyflash_init();
 }
@@ -136,24 +127,6 @@ void thread_init(void)
     {
         log_e("thread serial pc init failed");   
     } 
-    
-    ret = error_init();
-    if(ret != 0)
-    {
-        log_e("thread can init failed");   
-    } 
-    
-    ret = timer_init();
-    if(ret != 0)
-    {
-        log_e("thread can init failed");   
-    } 
-    param_init();
-    thread_seed_init();
-    thread_aom_init();
-    thread_pump_init();
-    task_init();
-    cd74_thread_init();
     mount_littlefs();
     ulog_file_backend_init();
 }

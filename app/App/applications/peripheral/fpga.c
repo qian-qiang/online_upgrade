@@ -119,33 +119,6 @@ void FPGA_Write(rt_uint16_t WriteAddr, rt_uint16_t Data)
 *********************************************************************************************/ 
 void ACTIVE_WR_FPGA(void)
 {
-	FPGA_Write(Burst_Num_W, GD_BUF[BURST_NUM]); 
-	FPGA_Write(FQ_RF_SCALE_W, GD_BUF[FQ_RF_SCALE]); 
-	FPGA_Write(FQ_FRE_W, GD_BUF[FQ_FRE]); 
-	FPGA_Write(SQ_RF_SCALE_W, aom2RfSet(GD_BUF[SQ_RF_SCALE]) ); 
-	FPGA_Write(Mode_W, GD_BUF[LASER_MODE]);
-	FPGA_Write(Mode_SW_W, GD_BUF[MODE_SW]);
-	//FPGA_Write(DELAY_W, GD_BUF[FQ_DELAY]);
-	FPGA_Write(EXT_MODE_W, GD_BUF[EXT_MODE]);
-	FPGA_Write(MODULO_DIVIDER_W, GD_BUF[MODULO_DIVIDER]);  
-	FPGA_Write(BURST_HOLDOFF_W, GD_BUF[BURST_HOLDOFF]);  
-	FPGA_Write(BURST_LENGTH_W, GD_BUF[BURST_LENGTH]);
-	FPGA_Write(EXT_MODE_ACTLEVEL_W, GD_BUF[EXT_MODE_ACTLEVEL]);
-	//FPGA_Write(SQ_ADD_TIME_W, GD_BUF[SQ_ADD_TIME]);
 	
-	
-	GD_BUF[BURST_NUM]	        = FPGA_Read(Burst_Num_R);	
-	GD_BUF[FQ_RF_SCALE]         = FPGA_Read(FQ_RF_SCALE_R); 
-	GD_BUF[FQ_FRE]              = FPGA_Read(FQ_FRE_R);
-    GD_BUF[MODE_SW]             = FPGA_Read(Mode_SW_R);	
-	GD_BUF[LASER_MODE]          = FPGA_Read(Mode_R);		 
-	//GD_BUF[FQ_DELAY]            = FPGA_Read(DELAY_R); 
-	GD_BUF[EXT_MODE]            = FPGA_Read(EXT_MODE_R);  
-    GD_BUF[MODULO_DIVIDER]      = FPGA_Read(MODULO_DIVIDER_R);
-	GD_BUF[BURST_HOLDOFF]       = FPGA_Read(BURST_HOLDOFF_R);
-	GD_BUF[BURST_LENGTH]        = FPGA_Read(BURST_LENGTH_R);
-	GD_BUF[EXT_MODE_ACTLEVEL]   = FPGA_Read(EXT_MODE_ACTLEVEL_R);
-	//GD_BUF[SQ_ADD_TIME]         = FPGA_Read(SQ_ADD_TIME_R);
-	GD_BUF[FPGA_VERS]           = FPGA_Read(FPAG_VERS_R);
 } 
 

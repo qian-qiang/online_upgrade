@@ -52,10 +52,10 @@
             this.linkLabel1.AutoSize = true;
             this.linkLabel1.Location = new System.Drawing.Point(81, 61);
             this.linkLabel1.Name = "linkLabel1";
-            this.linkLabel1.Size = new System.Drawing.Size(119, 12);
+            this.linkLabel1.Size = new System.Drawing.Size(101, 12);
             this.linkLabel1.TabIndex = 1;
             this.linkLabel1.TabStop = true;
-            this.linkLabel1.Text = "845343253@gmail.com";
+            this.linkLabel1.Text = "845343253@qq.com";
             // 
             // label2
             // 
@@ -107,9 +107,9 @@
             this.label7.AutoSize = true;
             this.label7.Location = new System.Drawing.Point(81, 86);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(23, 12);
+            this.label7.Size = new System.Drawing.Size(17, 12);
             this.label7.TabIndex = 0;
-            this.label7.Text = "JPT";
+            this.label7.Text = "QQ";
             // 
             // About
             // 

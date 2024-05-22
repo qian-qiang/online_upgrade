@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER, STM32F407xx, LFS_CONFIG=lfs_config.h, RT_USING_ARM_LIBC</Define>
               <Undefine></Undefine>
-              <IncludePath>.;rt-thread\include;applications\error;.;applications\main;.;applications\param;.;applications\peripheral;.;applications\protocol;.;applications\state;.;board;board\CubeMX_Config\Inc;board\ports;libraries\HAL_Drivers;libraries\HAL_Drivers\config;libraries\HAL_Drivers\drv_flash;packages\at24cxx;packages\EasyFlash-v4.1.0\inc;packages\ulog_easyflash-v0.2.0;packages\fal-latest\inc;packages\littlefs-v2.5.0;packages\ota_downloader-v1.0.0;packages\rt-spi-tools;packages\rt-spi-tools\src;packages\uart_ymodem;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\spi;rt-thread\components\drivers\include;rt-thread\components\drivers\spi\sfud\inc;rt-thread\components\drivers\include;rt-thread\components\drivers\include;packages\ulog_file-v1.0.0;.;packages\upacker;packages\upacker\c;.;rt-thread\libcpu\arm\common;rt-thread\libcpu\arm\cortex-m4;rt-thread\components\dfs\include;rt-thread\components\dfs\filesystems\devfs;rt-thread\components\finsh;rt-thread\components\libc\compilers\armlibc;rt-thread\components\libc\compilers\common;rt-thread\components\utilities\ulog;rt-thread\components\utilities\ymodem;libraries\STM32F4xx_HAL\STM32F4xx_HAL_Driver\Inc;libraries\STM32F4xx_HAL\CMSIS\Device\ST\STM32F4xx\Include;libraries\STM32F4xx_HAL\CMSIS\Include</IncludePath>
+              <IncludePath>.;rt-thread\include;applications\main;.;applications\peripheral;.;applications\protocol;.;board;board\CubeMX_Config\Inc;board\ports;libraries\HAL_Drivers;libraries\HAL_Drivers\config;libraries\HAL_Drivers\drv_flash;packages\at24cxx;packages\EasyFlash-v4.1.0\inc;packages\ulog_easyflash-v0.2.0;packages\fal-latest\inc;packages\littlefs-v2.5.0;packages\ota_downloader-v1.0.0;packages\rt-spi-tools;packages\rt-spi-tools\src;packages\uart_ymodem;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\include;rt-thread\components\drivers\spi;rt-thread\components\drivers\include;rt-thread\components\drivers\spi\sfud\inc;rt-thread\components\drivers\include;rt-thread\components\drivers\include;packages\ulog_file-v1.0.0;.;packages\upacker;packages\upacker\c;.;rt-thread\libcpu\arm\common;rt-thread\libcpu\arm\cortex-m4;rt-thread\components\dfs\include;rt-thread\components\dfs\filesystems\devfs;rt-thread\components\finsh;rt-thread\components\libc\compilers\armlibc;rt-thread\components\libc\compilers\common;rt-thread\components\utilities\ulog;rt-thread\components\utilities\ymodem;libraries\STM32F4xx_HAL\STM32F4xx_HAL_Driver\Inc;libraries\STM32F4xx_HAL\CMSIS\Device\ST\STM32F4xx\Include;libraries\STM32F4xx_HAL\CMSIS\Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -455,26 +455,6 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>error</GroupName>
-          <Files>
-            <File>
-              <FileName>error.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\error\error.c</FilePath>
-            </File>
-            <File>
-              <FileName>error_lvl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\error\error_lvl.c</FilePath>
-            </File>
-            <File>
-              <FileName>error_port.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\error\error_port.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
           <GroupName>main</GroupName>
           <Files>
             <File>
@@ -487,56 +467,11 @@
               <FileType>1</FileType>
               <FilePath>applications\main\no_bug.c</FilePath>
             </File>
-            <File>
-              <FileName>task.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\main\task.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>param</GroupName>
-          <Files>
-            <File>
-              <FileName>param.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\param\param.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>peripheral</GroupName>
           <Files>
-            <File>
-              <FileName>ShgThg.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\ShgThg.c</FilePath>
-            </File>
-            <File>
-              <FileName>aom.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\aom.c</FilePath>
-            </File>
-            <File>
-              <FileName>at24c08.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\at24c08.c</FilePath>
-            </File>
-            <File>
-              <FileName>cbm128s085.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\cbm128s085.c</FilePath>
-            </File>
-            <File>
-              <FileName>cd74xx.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\cd74xx.c</FilePath>
-            </File>
-            <File>
-              <FileName>dac7568.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\dac7568.c</FilePath>
-            </File>
             <File>
               <FileName>ef_fal_poart.c</FileName>
               <FileType>1</FileType>
@@ -553,39 +488,9 @@
               <FilePath>applications\peripheral\fpga.c</FilePath>
             </File>
             <File>
-              <FileName>funtimer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\funtimer.c</FilePath>
-            </File>
-            <File>
-              <FileName>pd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\pd.c</FilePath>
-            </File>
-            <File>
-              <FileName>pump.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\pump.c</FilePath>
-            </File>
-            <File>
-              <FileName>seed.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\seed.c</FilePath>
-            </File>
-            <File>
               <FileName>spi_flash_init.c</FileName>
               <FileType>1</FileType>
               <FilePath>applications\peripheral\spi_flash_init.c</FilePath>
-            </File>
-            <File>
-              <FileName>temp_humi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\temp_humi.c</FilePath>
-            </File>
-            <File>
-              <FileName>thermistor.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\peripheral\thermistor.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -598,6 +503,21 @@
               <FilePath>applications\protocol\drv_uart_ymodem.c</FilePath>
             </File>
             <File>
+              <FileName>fpga_upgrade.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>applications\protocol\fpga_upgrade.c</FilePath>
+            </File>
+            <File>
+              <FileName>fpgaupdate.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>applications\protocol\fpgaupdate.c</FilePath>
+            </File>
+            <File>
+              <FileName>mcu_upgrade.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>applications\protocol\mcu_upgrade.c</FilePath>
+            </File>
+            <File>
               <FileName>serial_pc.c</FileName>
               <FileType>1</FileType>
               <FilePath>applications\protocol\serial_pc.c</FilePath>
@@ -606,56 +526,6 @@
               <FileName>serial_unpack.c</FileName>
               <FileType>1</FileType>
               <FilePath>applications\protocol\serial_unpack.c</FilePath>
-            </File>
-            <File>
-              <FileName>mcu_upgrade.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\protocol\mcu_upgrade.c</FilePath>
-            </File>
-            <File>
-              <FileName>fpga_upgrade.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\protocol\fpga_upgrade.c</FilePath>
-            </File>
-            <File>
-              <FileName>fpgaupdate.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\applications\protocol\fpgaupdate.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>state</GroupName>
-          <Files>
-            <File>
-              <FileName>host_event.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\state\host_event.c</FilePath>
-            </File>
-            <File>
-              <FileName>host_state.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\state\host_state.c</FilePath>
-            </File>
-            <File>
-              <FileName>light_event.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\state\light_event.c</FilePath>
-            </File>
-            <File>
-              <FileName>light_state.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\state\light_state.c</FilePath>
-            </File>
-            <File>
-              <FileName>state.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\state\state.c</FilePath>
-            </File>
-            <File>
-              <FileName>state_program.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>applications\state\state_program.c</FilePath>
             </File>
           </Files>
         </Group>

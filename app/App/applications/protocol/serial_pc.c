@@ -86,7 +86,7 @@ static void serial_thread_entry(void *parameter)
 //                rt_kprintf("%x ",rx_buffer[i]);
 //            }
 //            rt_kprintf("\r\n");
-            //这里设计两个模式：1：控制数据模式  2：ymodem数据模式
+            //这里设计两个模式：1：用户自定义数据模式  2：ymodem数据模式
             if(uart_mode == UART_CMD_MODE)
             {
                 rx_buffer[rx_length] = '\0';

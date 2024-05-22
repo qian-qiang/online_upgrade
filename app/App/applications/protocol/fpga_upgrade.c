@@ -124,6 +124,8 @@ static rt_err_t ymodem_recv(void)
     
 __exit:
     as_program_done();
+    //这里其实是要通过fpga的控制引脚来设置fpga重启的
+    //但是没有调试出来 貌似是mcu内部和fpga内部的电路结构冲突了
     rt_hw_cpu_reset();
     return result;
 }

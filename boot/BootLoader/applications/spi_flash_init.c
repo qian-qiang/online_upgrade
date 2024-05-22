@@ -1,12 +1,3 @@
-/*
- * @Description: 
- * @Version: 1.0
- * @Autor: JunQi Liu
- * @Date: 2020-06-26 23:10:43
- * @LastEditors: JunQi Liu
- * @LastEditTime: 2020-06-26 23:14:19
- * @FilePath: \STM32-RTThread-BootLoader\applications\spi_flash_init.c
- */ 
 #include <rtthread.h>
 #include "spi_flash.h"
 #include "spi_flash_sfud.h"
