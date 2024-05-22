@@ -1,0 +1,10 @@
+E:\work\online_upgrade\pc\mcu upgrade\bin\Debug\yomdem.exe.config
+E:\work\online_upgrade\pc\mcu upgrade\bin\Debug\yomdem.exe
+E:\work\online_upgrade\pc\mcu upgrade\bin\Debug\yomdem.pdb
+E:\work\online_upgrade\pc\mcu upgrade\obj\Debug\yomdem_test.About.resources
+E:\work\online_upgrade\pc\mcu upgrade\obj\Debug\yomdem_test.Form1.resources
+E:\work\online_upgrade\pc\mcu upgrade\obj\Debug\yomdem_test.Properties.Resources.resources
+E:\work\online_upgrade\pc\mcu upgrade\obj\Debug\mcu upgrade.csproj.GenerateResource.cache
+E:\work\online_upgrade\pc\mcu upgrade\obj\Debug\mcu upgrade.csproj.CoreCompileInputs.cache
+E:\work\online_upgrade\pc\mcu upgrade\obj\Debug\yomdem.exe
+E:\work\online_upgrade\pc\mcu upgrade\obj\Debug\yomdem.pdb

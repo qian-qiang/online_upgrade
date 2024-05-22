@@ -1,0 +1,20 @@
+E:\work\online_upgrade\pc\fpga upgrade\bin\Debug\yomdem.exe.config
+E:\work\online_upgrade\pc\fpga upgrade\bin\Debug\yomdem.exe
+E:\work\online_upgrade\pc\fpga upgrade\bin\Debug\yomdem.pdb
+E:\work\online_upgrade\pc\fpga upgrade\obj\Debug\yomdem_test.About.resources
+E:\work\online_upgrade\pc\fpga upgrade\obj\Debug\yomdem_test.Form1.resources
+E:\work\online_upgrade\pc\fpga upgrade\obj\Debug\yomdem_test.Properties.Resources.resources
+E:\work\online_upgrade\pc\fpga upgrade\obj\Debug\fpga upgrade.csproj.GenerateResource.cache
+E:\work\online_upgrade\pc\fpga upgrade\obj\Debug\fpga upgrade.csproj.CoreCompileInputs.cache
+E:\work\online_upgrade\pc\fpga upgrade\obj\Debug\yomdem.exe
+E:\work\online_upgrade\pc\fpga upgrade\obj\Debug\yomdem.pdb
+E:\work\online_upgrade\pc\upgrade\bin\Debug\yomdem.exe.config
+E:\work\online_upgrade\pc\upgrade\bin\Debug\yomdem.exe
+E:\work\online_upgrade\pc\upgrade\bin\Debug\yomdem.pdb
+E:\work\online_upgrade\pc\upgrade\obj\Debug\yomdem_test.About.resources
+E:\work\online_upgrade\pc\upgrade\obj\Debug\yomdem_test.Form1.resources
+E:\work\online_upgrade\pc\upgrade\obj\Debug\yomdem_test.Properties.Resources.resources
+E:\work\online_upgrade\pc\upgrade\obj\Debug\fpga upgrade.csproj.GenerateResource.cache
+E:\work\online_upgrade\pc\upgrade\obj\Debug\fpga upgrade.csproj.CoreCompileInputs.cache
+E:\work\online_upgrade\pc\upgrade\obj\Debug\yomdem.exe
+E:\work\online_upgrade\pc\upgrade\obj\Debug\yomdem.pdb

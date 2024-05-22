@@ -1,0 +1,11 @@
+E:\work\online_upgrade\pc\yomdem test\bin\Release\yomdem.exe.config
+E:\work\online_upgrade\pc\yomdem test\bin\Release\yomdem.exe
+E:\work\online_upgrade\pc\yomdem test\bin\Release\yomdem.pdb
+E:\work\online_upgrade\pc\yomdem test\obj\Release\mcu upgrade.csproj.AssemblyReference.cache
+E:\work\online_upgrade\pc\yomdem test\obj\Release\yomdem_test.About.resources
+E:\work\online_upgrade\pc\yomdem test\obj\Release\yomdem_test.Form1.resources
+E:\work\online_upgrade\pc\yomdem test\obj\Release\yomdem_test.Properties.Resources.resources
+E:\work\online_upgrade\pc\yomdem test\obj\Release\mcu upgrade.csproj.GenerateResource.cache
+E:\work\online_upgrade\pc\yomdem test\obj\Release\mcu upgrade.csproj.CoreCompileInputs.cache
+E:\work\online_upgrade\pc\yomdem test\obj\Release\yomdem.exe
+E:\work\online_upgrade\pc\yomdem test\obj\Release\yomdem.pdb
